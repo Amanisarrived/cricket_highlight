@@ -1,0 +1,134 @@
+import 'dart:async';
+import 'package:cricket_highlight/widgets/apptext.dart';
+import 'package:cricket_highlight/widgets/video_card.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import '../../provider/categoryprovider.dart';
+import '../home/videoplayerscreen.dart';
+
+class TestMatchesScreen extends StatefulWidget {
+  const TestMatchesScreen({super.key});
+
+  @override
+  State<TestMatchesScreen> createState() => _TestMatchesScreenState();
+}
+
+class _TestMatchesScreenState extends State<TestMatchesScreen> {
+  bool _hasLoadedOnce = false;
+  Timer? _autoRefreshTimer;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-refresh every 30 minutes
+    _autoRefreshTimer = Timer.periodic(const Duration(minutes: 30), (timer) {
+      Provider.of<CategoryProvider>(context, listen: false)
+          .loadMovies(forceRefresh: true);
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasLoadedOnce) {
+      Provider.of<CategoryProvider>(context, listen: false)
+          .loadMovies(forceRefresh: false);
+      _hasLoadedOnce = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    _autoRefreshTimer?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _reloadData() async {
+    await Provider.of<CategoryProvider>(context, listen: false)
+        .loadMovies(forceRefresh: true);
+  }
+
+  bool get _isAtTop =>
+      !_scrollController.hasClients || _scrollController.offset <= 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<CategoryProvider>();
+    final testMatches = provider.getMoviesByCategoryId(40).reversed.toList();
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const AppText(
+          "Test Matches",
+          fontSize: 25,
+          color: Colors.white,
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          if (_isAtTop) await _reloadData();
+        },
+        color: Colors.redAccent,
+        backgroundColor: Colors.black,
+        strokeWidth: 2.5,
+        displacement: 30,
+        child: provider.isLoading
+            ? const Center(
+          child: CircularProgressIndicator(color: Colors.redAccent),
+        )
+            : testMatches.isEmpty
+            ? const Center(
+          child: AppText(
+            "No Highlights found.",
+            color: Colors.white70,
+            fontSize: 14,
+          ),
+        )
+            : AnimationLimiter(
+          child: ListView.builder(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 50),
+            itemCount: testMatches.length,
+            itemBuilder: (context, index) {
+              final movie = testMatches[index];
+              return AnimationConfiguration.staggeredList(
+                position: index,
+                duration: const Duration(milliseconds: 400),
+                child: SlideAnimation(
+                  verticalOffset: 50.0,
+                  child: FadeInAnimation(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: VideoCard(
+                        movie: movie,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => VideoPlayerScreen(
+                                  videoUrl: movie.url),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
