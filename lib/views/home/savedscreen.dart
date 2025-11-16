@@ -84,6 +84,7 @@ class _SavedScreenState extends State<SavedScreen> {
                           MaterialPageRoute(
                             builder: (_) => VideoPlayerScreen(
                               videoUrl: movie.url,
+                              title: movie.name,
                             ),
                           ),
                         );

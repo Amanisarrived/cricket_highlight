@@ -21,13 +21,11 @@ class CategoryProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-
   bool get isMoviesStale {
     if (_movies.isEmpty) return true;
     if (_lastFetchedTime == null) return true;
     return DateTime.now().difference(_lastFetchedTime!) > cacheDuration;
   }
-
 
   Future<void> loadCategories({bool forceRefresh = false}) async {
     if (_categories.isNotEmpty && !forceRefresh && !_shouldRefetch()) return;
@@ -47,7 +45,6 @@ class CategoryProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
 
   Future<void> loadMovies({bool forceRefresh = false}) async {
     if (_movies.isNotEmpty && !forceRefresh && !_shouldRefetch()) {
@@ -70,7 +67,6 @@ class CategoryProvider with ChangeNotifier {
     }
   }
 
-
   bool _shouldRefetch() {
     if (_lastFetchedTime == null) return true;
     return DateTime.now().difference(_lastFetchedTime!) > cacheDuration;
@@ -79,7 +75,7 @@ class CategoryProvider with ChangeNotifier {
   CategoryModel? getCategoryByName(String categoryName) {
     try {
       return _categories.firstWhere(
-            (cat) => cat.name.toLowerCase() == categoryName.toLowerCase(),
+        (cat) => cat.name.toLowerCase() == categoryName.toLowerCase(),
       );
     } catch (_) {
       return null;

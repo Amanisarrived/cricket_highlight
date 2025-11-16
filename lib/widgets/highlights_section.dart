@@ -4,7 +4,6 @@ import 'package:cricket_highlight/widgets/apptext.dart';
 import 'package:cricket_highlight/widgets/video_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../views/home/videoplayerscreen.dart';
 
 class HighlightsSection extends StatelessWidget {
@@ -68,7 +67,7 @@ class HighlightsSection extends StatelessWidget {
                             transitionDuration: const Duration(milliseconds: 600),
                             reverseTransitionDuration: const Duration(milliseconds: 400),
                             pageBuilder: (context, animation, secondaryAnimation) =>
-                                VideoPlayerScreen(videoUrl: movie.url),
+                                VideoPlayerScreen(videoUrl: movie.url,title: movie.name,),
                             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                               return SharedAxisTransition(
                                 animation: animation,

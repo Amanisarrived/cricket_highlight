@@ -8,7 +8,13 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final String videoUrl;
-  const VideoPlayerScreen({super.key, required this.videoUrl});
+  final String title;
+
+  const VideoPlayerScreen({
+    super.key,
+    required this.videoUrl,
+    required this.title,
+  });
 
   @override
   State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
@@ -24,7 +30,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   @override
   void initState() {
     super.initState();
+
     final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl) ?? '';
+
     _controller = YoutubePlayerController(
       initialVideoId: videoId,
       flags: const YoutubePlayerFlags(
@@ -60,6 +68,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _isDisposing = true;
 
     setState(() => _playerOpacity = 0.0);
+
     try {
       _controller.pause();
     } catch (_) {}
@@ -71,6 +80,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     } catch (_) {}
 
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
     if (mounted) Navigator.pop(context);
   }
 
@@ -106,7 +116,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             ]);
           },
           player: YoutubePlayer(
-            aspectRatio: 16/9,
+            aspectRatio: 16 / 9,
             controller: _controller,
             showVideoProgressIndicator: true,
             progressIndicatorColor: Colors.redAccent,
@@ -118,48 +128,56 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
             return Column(
               children: [
-                // ✅ Top Header
+
                 SafeArea(
                   top: true,
                   bottom: false,
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 8, right: 8, bottom: 4),
+                    padding: const EdgeInsets.only(
+                        left: 8, right: 8, bottom: 4, top: 4),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.arrow_back, color: Colors.white),
-                              onPressed: () => _handlePop(context),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                            const SizedBox(width: 6),
-                            const AppText(
-                              "Now Playing",
-                              fontSize: 18,
-                              color: Colors.white,
-                            ),
-                          ],
+                        IconButton(
+                          icon:
+                          const Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: () => _handlePop(context),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
-
+                        const SizedBox(width: 6),
+                        const AppText(
+                          "Now Playing",
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 20,),
 
-                // ✅ YouTube Player with gap fix
+                const SizedBox(height: 12),
+
+
                 SizedBox(
-                      height: MediaQuery.of(context).size.width * 9 / 16,
-                      width: double.infinity,
-                      child: player,
-                    ),
+                  height: MediaQuery.of(context).size.width * 9 / 16,
+                  width: double.infinity,
+                  child: player,
+                ),
+
+               const SizedBox(height: 5,),
 
 
+                Padding(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: AppText(
+                    widget.title,
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
 
-                // ✅ Recommended Section
                 Expanded(
                   child: Container(
                     width: double.infinity,
@@ -174,8 +192,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding:
-                          const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                           child: Stack(
                             alignment: Alignment.bottomLeft,
                             children: [
@@ -194,6 +211,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                           ),
                         ),
 
+
                         Expanded(
                           child: RefreshIndicator(
                             onRefresh: _refreshRecommendations,
@@ -201,11 +219,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                             backgroundColor: Colors.black,
                             strokeWidth: 2.5,
                             child: ListView.separated(
-                              physics: const AlwaysScrollableScrollPhysics(),
+                              physics:
+                              const AlwaysScrollableScrollPhysics(),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
+                                  horizontal: 16, vertical: 8),
                               itemCount: randomMovies.length,
                               separatorBuilder: (_, __) =>
                               const SizedBox(height: 12),
@@ -222,9 +239,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                                         pageBuilder: (_, __, ___) =>
                                             VideoPlayerScreen(
                                               videoUrl: movie.url,
+                                              title: movie.name, // <-- NEW
                                             ),
-                                        transitionsBuilder:
-                                            (_, animation, __, child) {
+                                        transitionsBuilder: (_, animation, __,
+                                            child) {
                                           return FadeTransition(
                                             opacity: animation,
                                             child: child,
@@ -241,7 +259,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                       ],
                     ),
                   ),
-                ),
+                )
               ],
             );
           },

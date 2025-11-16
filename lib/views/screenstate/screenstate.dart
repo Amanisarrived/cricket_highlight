@@ -55,14 +55,15 @@ class _MainScreenStateState extends State<MainScreenState> {
                 currentIndex: _currentIndex,
                 onTap: (index) => setState(() => _currentIndex = index),
                 type: BottomNavigationBarType.fixed,
-                backgroundColor: Colors.black,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
                 selectedItemColor: Colors.redAccent,
                 unselectedItemColor: Colors.white54,
                 selectedLabelStyle: const TextStyle(
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
-                unselectedLabelStyle: const TextStyle(fontSize: 12),
+                unselectedLabelStyle: const TextStyle(fontSize: 11),
                 items: const [
                   BottomNavigationBarItem(
                     icon: Icon(LucideIcons.home),

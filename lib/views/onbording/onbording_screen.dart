@@ -71,7 +71,7 @@ class OnbordingScreen extends StatelessWidget {
 
                   // Button
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.fromLTRB(20, 0,20, 20),
                     child: AppButton(
                       text: "Next",
                       onPressed: () {

@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:cricket_highlight/model/hive_movie_model.dart';
 import 'package:cricket_highlight/provider/categoryprovider.dart';
 import 'package:cricket_highlight/provider/saved_video_provider.dart';
+import 'package:cricket_highlight/views/home/splashscreen.dart';
 import 'package:cricket_highlight/views/onbording/onbording_screen.dart';
-import 'package:cricket_highlight/views/screenstate/screenstate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_inappwebview_android/flutter_inappwebview_android.dart';
@@ -18,11 +18,9 @@ void main() async {
   await MobileAds.instance.initialize();
 
 
-
-// Add this block 👇 to stabilize your ad loading
   RequestConfiguration requestConfiguration = RequestConfiguration(
     testDeviceIds: [
-      "C142502C33014B2CA7044B6383AA3F57", // replace with your actual device ID
+      "C142502C33014B2CA7044B6383AA3F57",
     ],
   );
 
@@ -94,7 +92,7 @@ class _MyAppState extends State<MyApp> {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: _showOnboarding ? const OnbordingScreen() : const MainScreenState(),
+      home: _showOnboarding ? const OnbordingScreen() : const Splashscreen(),
     );
   }
 }

@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../../widgets/adwidget/homebannerad.dart';
+import '../../widgets/adwidget/interstitialadwidget.dart';
 
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
@@ -88,10 +89,10 @@ class _HomescreenState extends State<Homescreen> {
           color: Colors.white,
         ),
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications, color: Colors.white),
-          ),
+         Padding(
+           padding: const EdgeInsets.only(right: 10),
+           child: Image.asset("assets/images/logo.png", scale: 8,),
+         )
         ],
       ),
       body: RefreshIndicator(
@@ -155,7 +156,7 @@ class _HomescreenState extends State<Homescreen> {
                             context,
                             MaterialPageRoute(
                               builder: (_) =>
-                                  VideoPlayerScreen(videoUrl: movie.url),
+                                  VideoPlayerScreen(videoUrl: movie.url,title: movie.name,),
                             ),
                           );
                         },
@@ -223,14 +224,20 @@ class _HomescreenState extends State<Homescreen> {
             itemBuilder: (context, index, realIndex) {
               final movie = trendingMovies[index];
               return VideoCard(
+                tag: "Latest",
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => VideoPlayerScreen(videoUrl: movie.url),
-                    ),
+                  InterstitialService.showAdIfReady(
+                    onComplete: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => VideoPlayerScreen(videoUrl: movie.url, title: movie.name,),
+                        ),
+                      );
+                    },
                   );
                 },
+
                 movie: movie,
               );
             },
@@ -320,15 +327,19 @@ class _HomescreenState extends State<Homescreen> {
                       padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
                       child: VideoCard(
                         movie: movie,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  VideoPlayerScreen(videoUrl: movie.url),
-                            ),
-                          );
-                        },
+                          onTap: () {
+                            InterstitialService.showAdIfReady(
+                              onComplete: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => VideoPlayerScreen(videoUrl: movie.url, title: movie.name,),
+                                  ),
+                                );
+                              },
+                            );
+                          }
+
                       ),
                     ),
                   ),

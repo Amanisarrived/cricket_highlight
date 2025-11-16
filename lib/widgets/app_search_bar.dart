@@ -39,19 +39,24 @@ class _AppSearchBarState extends State<AppSearchBar> {
     _controller = widget.controller ?? TextEditingController();
     _hasText = _controller.text.isNotEmpty;
 
-    _controller.addListener(() {
-      setState(() {
-        _hasText = _controller.text.isNotEmpty;
-      });
-    });
+    _controller.addListener(_onTextChanged);
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_onTextChanged);
     if (widget.controller == null) {
       _controller.dispose();
     }
     super.dispose();
+  }
+
+  void _onTextChanged() {
+    if(mounted){
+      setState(() {
+        _hasText = _controller.text.isNotEmpty;
+      });
+    }
   }
 
   @override

@@ -62,7 +62,7 @@ class OnbordingScreen2 extends StatelessWidget {
                       .fadeIn(duration: 700.ms),
                   const SizedBox(height: 20),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.fromLTRB(20, 0,20, 20),
                     child: AppButton(text: "Next", onPressed: () {
                       Navigator.of(context).push(
                         PageRouteBuilder(

@@ -1,6 +1,8 @@
 import 'package:cricket_highlight/model/moviemodel.dart';
 import 'package:dio/dio.dart';
 
+import '../model/simplecategory.dart';
+
 class ApiService {
   final Dio _dio = Dio(
     BaseOptions(
@@ -91,4 +93,25 @@ class ApiService {
       return "Unexpected error: ${e.message}";
     }
   }
+
+  Future<List<SimpleCategory>> fetchSimpleCategories() async {
+    try {
+      final response = await _dio.get("categories");
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final List categories = data["categories"];
+
+        return categories
+            .map((json) => SimpleCategory.fromJson(json))
+            .toList();
+      } else {
+        throw Exception("Server error: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error fetching simple categories: $e");
+    }
+  }
+
+
 }

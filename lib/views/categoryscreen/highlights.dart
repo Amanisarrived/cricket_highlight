@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
 import '../../provider/categoryprovider.dart';
+import '../../widgets/adwidget/interstitialadwidget.dart';
 import '../home/videoplayerscreen.dart';
 
 class HighlightsScreen extends StatefulWidget {
@@ -93,16 +94,18 @@ class _HighlightsScreenState extends State<HighlightsScreen> {
                       padding: const EdgeInsets.only(bottom: 20),
                       child: VideoCard(
                         movie: movie,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => VideoPlayerScreen(
-                                videoUrl: movie.url,
-                              ),
-                            ),
-                          );
-                        },
+                          onTap: () {
+                            InterstitialService.showAdIfReady(
+                              onComplete: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => VideoPlayerScreen(videoUrl: movie.url, title: movie.name,),
+                                  ),
+                                );
+                              },
+                            );
+                          }
                       ),
                     ),
                   ),

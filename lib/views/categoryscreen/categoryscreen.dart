@@ -1,3 +1,4 @@
+import 'package:cricket_highlight/provider/categoryprovider.dart';
 import 'package:cricket_highlight/views/categoryscreen/bestcathces.dart';
 import 'package:cricket_highlight/views/categoryscreen/funnymoments.dart';
 import 'package:cricket_highlight/views/categoryscreen/highlights.dart';
@@ -9,12 +10,18 @@ import 'package:cricket_highlight/views/categoryscreen/world_cup_matches.dart';
 import 'package:cricket_highlight/widgets/apptext.dart';
 import 'package:cricket_highlight/widgets/categoriescard.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Categoryscreen extends StatelessWidget {
   const Categoryscreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final categoryprovider = Provider.of<CategoryProvider>(context);
+    final apiCategories = categoryprovider.categories;
+
+
+
     final categories = [
       {
         'title': 'Highlights',

@@ -73,7 +73,7 @@ class OnbordingScreen3 extends StatelessWidget {
 
                   // Button
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.fromLTRB(20, 0,20, 20),
                     child: AppButton(text: "Get Started", onPressed: () {
                       Navigator.push(context, PageRouteBuilder(
                         transitionDuration: const Duration(milliseconds: 700),
