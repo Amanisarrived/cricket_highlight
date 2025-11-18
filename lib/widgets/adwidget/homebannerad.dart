@@ -28,7 +28,7 @@ class _HomeBannerAdState extends State<HomeBannerAd> {
     if (adSize == null) return;
 
     final banner = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111',
+      adUnitId: 'ca-app-pub-2590111716650280/5937052107',
       size: adSize,
       request: const AdRequest(),
       listener: BannerAdListener(

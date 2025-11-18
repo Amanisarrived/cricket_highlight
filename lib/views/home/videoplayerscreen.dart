@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cricket_highlight/provider/categoryprovider.dart';
 import 'package:cricket_highlight/widgets/apptext.dart';
 import 'package:cricket_highlight/widgets/video_card.dart';
@@ -26,6 +27,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   bool _isDisposing = false;
   double _playerOpacity = 1.0;
   List randomMovies = [];
+
+  bool _showControls = false;
+  Timer? _hideTimer;
+
+  // Animation indicator
+  bool _showLeftIndicator = false;
+  bool _showRightIndicator = false;
 
   @override
   void initState() {
@@ -63,6 +71,38 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _loadRecommendations();
   }
 
+  // ---------- SEEK CONTROLS ----------
+
+  void _seekForward() {
+    final current = _controller.value.position;
+    _controller.seekTo(current + const Duration(seconds: 10));
+    _triggerRightIndicator();
+  }
+
+  void _seekBackward() {
+    final current = _controller.value.position;
+    final newPosition = current - const Duration(seconds: 10) < Duration.zero
+        ? Duration.zero
+        : current - const Duration(seconds: 10);
+    _controller.seekTo(newPosition);
+    _triggerLeftIndicator();
+  }
+
+  void _triggerLeftIndicator() {
+    setState(() => _showLeftIndicator = true);
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) setState(() => _showLeftIndicator = false);
+    });
+  }
+
+  void _triggerRightIndicator() {
+    setState(() => _showRightIndicator = true);
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) setState(() => _showRightIndicator = false);
+    });
+  }
+
+  // ---------- EXIT HANDLING ----------
   Future<void> _handlePop(BuildContext context) async {
     if (_isDisposing) return;
     _isDisposing = true;
@@ -86,12 +126,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
   @override
   void dispose() {
+    _hideTimer?.cancel();
     if (!_isDisposing) {
       _controller.dispose();
       SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     }
     super.dispose();
   }
+
+  // ----------------------------------------------------
+  // ---------------------- UI --------------------------
+  // ----------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -128,18 +173,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
             return Column(
               children: [
-
                 SafeArea(
                   top: true,
                   bottom: false,
                   child: Padding(
-                    padding: const EdgeInsets.only(
-                        left: 8, right: 8, bottom: 4, top: 4),
+                    padding: const EdgeInsets.only(left: 8, right: 8, bottom: 4, top: 4),
                     child: Row(
                       children: [
                         IconButton(
-                          icon:
-                          const Icon(Icons.arrow_back, color: Colors.white),
+                          icon: const Icon(Icons.arrow_back, color: Colors.white),
                           onPressed: () => _handlePop(context),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
@@ -157,19 +199,74 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
                 const SizedBox(height: 12),
 
+                // =======================
+                //     PLAYER AREA
+                // =======================
+                GestureDetector(
+                  onDoubleTapDown: (details) {
+                    final width = MediaQuery.of(context).size.width;
+                    final dx = details.globalPosition.dx;
 
-                SizedBox(
-                  height: MediaQuery.of(context).size.width * 9 / 16,
-                  width: double.infinity,
-                  child: player,
+                    if (dx < width * 0.4) {
+                      _seekBackward();
+                    } else if (dx > width * 0.6) {
+                      _seekForward();
+                    }
+                  },
+                  onHorizontalDragEnd: (details) {
+                    if (details.primaryVelocity == null) return;
+
+                    if (details.primaryVelocity! < 0) {
+                      _seekForward();
+                    } else {
+                      _seekBackward();
+                    }
+                  },
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.width * 9 / 16,
+                    width: double.infinity,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        player,
+
+                        // LEFT INDICATOR
+                        AnimatedOpacity(
+                          opacity: _showLeftIndicator ? 1 : 0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 30),
+                              child: Icon(Icons.replay_10_rounded,
+                                  size: 70, color: Colors.white),
+                            ),
+                          ),
+                        ),
+
+                        // RIGHT INDICATOR
+                        AnimatedOpacity(
+                          opacity: _showRightIndicator ? 1 : 0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 30),
+                              child: Icon(Icons.forward_10_rounded,
+                                  size: 70, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
 
-               const SizedBox(height: 5,),
+                const SizedBox(height: 5),
 
-
+                // TITLE
                 Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: AppText(
                     widget.title,
                     color: Colors.white,
@@ -178,6 +275,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                   ),
                 ),
 
+                // ======================
+                //   RECOMMENDATIONS
+                // ======================
                 Expanded(
                   child: Container(
                     width: double.infinity,
@@ -211,7 +311,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                           ),
                         ),
 
-
                         Expanded(
                           child: RefreshIndicator(
                             onRefresh: _refreshRecommendations,
@@ -219,13 +318,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                             backgroundColor: Colors.black,
                             strokeWidth: 2.5,
                             child: ListView.separated(
-                              physics:
-                              const AlwaysScrollableScrollPhysics(),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               itemCount: randomMovies.length,
-                              separatorBuilder: (_, __) =>
-                              const SizedBox(height: 12),
+                              separatorBuilder: (_, __) => const SizedBox(height: 12),
                               itemBuilder: (context, index) {
                                 final movie = randomMovies[index];
                                 return VideoCard(
@@ -234,15 +330,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                                     Navigator.pushReplacement(
                                       context,
                                       PageRouteBuilder(
-                                        transitionDuration:
-                                        const Duration(milliseconds: 300),
+                                        transitionDuration: const Duration(milliseconds: 300),
                                         pageBuilder: (_, __, ___) =>
                                             VideoPlayerScreen(
                                               videoUrl: movie.url,
-                                              title: movie.name, // <-- NEW
+                                              title: movie.name,
                                             ),
-                                        transitionsBuilder: (_, animation, __,
-                                            child) {
+                                        transitionsBuilder: (_, animation, __, child) {
                                           return FadeTransition(
                                             opacity: animation,
                                             child: child,
