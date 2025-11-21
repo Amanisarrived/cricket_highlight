@@ -1,8 +1,6 @@
 import 'package:cricket_highlight/views/screenstate/screenstate.dart';
 import 'package:cricket_highlight/widgets/appbutton.dart';
 import 'package:cricket_highlight/widgets/apptext.dart';
-import 'package:cricket_highlight/views/home/homescreen.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 

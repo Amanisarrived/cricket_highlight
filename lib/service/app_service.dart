@@ -1,12 +1,12 @@
 import 'package:cricket_highlight/model/moviemodel.dart';
 import 'package:dio/dio.dart';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../model/simplecategory.dart';
 
 class ApiService {
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: "https://cricket.kritishmovie.xyz/api/",
+      baseUrl: dotenv.env['BASE_URL']!,
       connectTimeout: const Duration(seconds: 20),
       receiveTimeout: const Duration(seconds: 20),
       responseType: ResponseType.json,
@@ -31,12 +31,12 @@ class ApiService {
           throw Exception("Invalid data format from server.");
         }
       } else {
-        throw Exception("Server error: ${response.statusCode}");
+        throw Exception("Server error: \${response.statusCode}");
       }
     } on DioException catch (e) {
       throw Exception(_handleDioError(e));
     } catch (e) {
-      throw Exception("Something went wrong: ${e.toString()}");
+      throw Exception("Something went wrong: \${e.toString()}");
     }
   }
 
@@ -60,12 +60,12 @@ class ApiService {
           throw Exception("Invalid data format from server.");
         }
       } else {
-        throw Exception("Server error: ${response.statusCode}");
+        throw Exception("Server error: \${response.statusCode}");
       }
     } on DioException catch (e) {
       throw Exception(_handleDioError(e));
     } catch (e) {
-      throw Exception("Something went wrong: ${e.toString()}");
+      throw Exception("Something went wrong: \${e.toString()}");
     }
   }
 
@@ -90,7 +90,7 @@ class ApiService {
     } else if (e.type == DioExceptionType.connectionError) {
       return "No internet connection.";
     } else {
-      return "Unexpected error: ${e.message}";
+      return "Unexpected error: \${e.message}";
     }
   }
 
@@ -106,10 +106,10 @@ class ApiService {
             .map((json) => SimpleCategory.fromJson(json))
             .toList();
       } else {
-        throw Exception("Server error: ${response.statusCode}");
+        throw Exception("Server error: \${response.statusCode}");
       }
     } catch (e) {
-      throw Exception("Error fetching simple categories: $e");
+      throw Exception("Error fetching simple categories: \$e");
     }
   }
 

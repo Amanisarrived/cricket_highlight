@@ -5,6 +5,7 @@ import 'package:cricket_highlight/provider/saved_video_provider.dart';
 import 'package:cricket_highlight/views/home/splashscreen.dart';
 import 'package:cricket_highlight/views/onbording/onbording_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_inappwebview_android/flutter_inappwebview_android.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -14,7 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await dotenv.load(fileName: ".env");
   await MobileAds.instance.initialize();
 
 
