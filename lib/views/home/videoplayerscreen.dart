@@ -28,7 +28,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   double _playerOpacity = 1.0;
   List randomMovies = [];
 
-  bool _showControls = false;
+ final bool _showControls = false;
   Timer? _hideTimer;
 
   // Animation indicator

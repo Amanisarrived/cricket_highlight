@@ -5,7 +5,7 @@ class InterstitialService {
   static bool _isReady = false;
 
   static const String adUnitId =
-      "ca-app-pub-2590111716650280/6741376626";
+      "ca-app-pub-2590111716650280/3654751110";
 
   static void load() {
     InterstitialAd.load(

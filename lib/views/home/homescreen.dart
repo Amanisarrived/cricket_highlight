@@ -37,7 +37,6 @@ class _HomescreenState extends State<Homescreen> {
       if (provider.isMoviesStale) {
         await provider.loadMovies(forceRefresh: true);
       }
-
       _loadRecommendations(provider);
     });
   }

@@ -99,7 +99,8 @@ class _WorldcupMatchesState extends State<WorldcupMatches> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => VideoPlayerScreen(videoUrl: movie.url, title: movie.name,),
+                                    builder: (_) => VideoPlayerScreen(videoUrl: movie.url
+                                      , title: movie.name,),
                                   ),
                                 );
                               },
