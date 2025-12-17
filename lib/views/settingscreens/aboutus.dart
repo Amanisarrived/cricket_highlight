@@ -52,19 +52,14 @@ class AboutUsScreen extends StatelessWidget {
                 boxShadow: [
                   BoxShadow(
                     color: Colors.redAccent.withAlpha(60),
-                    blurRadius: 12,
-                    spreadRadius: 2,
-                    offset: const Offset(0, 6),
+                    blurRadius: 15,
+                    spreadRadius: 10,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: const Center(
-                child: AppText(
-                  "CH",
-                  fontSize: 32,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Center(
+                child:Image.asset("assets/images/applogo.png")
               ),
             ),
             const SizedBox(height: 20),
@@ -96,7 +91,7 @@ class AboutUsScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Features section
-            AppText(
+            const AppText(
               "Features",
               fontSize: 20,
               color: Colors.redAccent,
@@ -142,7 +137,7 @@ class AboutUsScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Categories section
-            AppText(
+           const AppText(
               "Categories",
               fontSize: 20,
               color: Colors.redAccent,

@@ -32,7 +32,7 @@ class AppOpenAdService {
     );
   }
 
-  void showAdIfAvailable() {
+  void showAdIfAvailable({required void Function() onComplete}) {
     if (_appOpenAd == null) return;
     if (_isShowingAd) return;
 

@@ -4,351 +4,280 @@ import 'package:cricket_highlight/views/home/videoplayerscreen.dart';
 import 'package:cricket_highlight/widgets/app_search_bar.dart';
 import 'package:cricket_highlight/widgets/apptext.dart';
 import 'package:cricket_highlight/widgets/video_card.dart';
+import 'package:cricket_highlight/widgets/adwidget/homebannerad.dart';
+import 'package:cricket_highlight/widgets/adwidget/openadservcie.dart'; // ← APP OPEN AD SERVICE
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
-import '../../widgets/adwidget/homebannerad.dart';
-import '../../widgets/adwidget/interstitialadwidget.dart';
+import '../../model/moviemodel.dart';
+import '../../widgets/shimmerbox.dart';
 
-class Homescreen extends StatefulWidget {
-  const Homescreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<Homescreen> createState() => _HomescreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomescreenState extends State<Homescreen> {
-  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
-  GlobalKey<RefreshIndicatorState>();
-
-  List randomMovies = [];
-  List searchResults = [];
+class _HomeScreenState extends State<HomeScreen> {
+  List<MovieModel> randomMovies = [];
+  List<MovieModel> searchResults = [];
   String query = "";
+
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final provider = Provider.of<CategoryProvider>(context, listen: false);
 
-      // Load data if stale (30 mins rule)
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+
+      AppOpenAdService().loadAd();
+
+
+      Future.delayed(const Duration(milliseconds: 800), () {
+        AppOpenAdService().showAdIfAvailable(
+          onComplete: () {
+
+          },
+        );
+      });
+
+      // Load home screen movies
+      final provider = context.read<CategoryProvider>();
+
       if (provider.isMoviesStale) {
         await provider.loadMovies(forceRefresh: true);
       }
-      _loadRecommendations(provider);
-    });
-  }
 
-  void _loadRecommendations(CategoryProvider provider) {
-    setState(() {
-      randomMovies = provider.getRandomMovies(count: 12);
-    });
-  }
-
-  Future<void> _refreshHome() async {
-    final provider = Provider.of<CategoryProvider>(context, listen: false);
-    await provider.loadMovies(forceRefresh: true);
-    _loadRecommendations(provider);
-  }
-
-  void _onSearchChanged(String value, CategoryProvider provider) {
-    setState(() {
-      query = value;
-      searchResults = provider.searchMovies(value);
+      setState(() {
+        randomMovies = provider.getRandomMovies(count: 18);
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CategoryProvider>();
-    final trendingMovies = provider.getTrendingMovies();
-    final bool isSearching = query.isNotEmpty;
-
-    // Show loading spinner if data is being fetched and empty
-    if (provider.isLoading && trendingMovies.isEmpty && randomMovies.isEmpty) {
-      return const Scaffold(
-        backgroundColor: Colors.black12,
-        body: Center(
-          child: CircularProgressIndicator(color: Colors.redAccent),
-        ),
-      );
-    }
+    final trending = provider.getTrendingMovies();
+    final isSearching = query.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: Colors.black12,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: false,
-        title: const AppText(
-          "CricHighlights Hub",
-          fontSize: 25,
-          fontWeight: FontWeight.w400,
-          color: Colors.white,
-        ),
-        actions: [
-         Padding(
-           padding: const EdgeInsets.only(right: 10),
-           child: Image.asset("assets/images/logo.png", scale: 8,),
-         )
-        ],
-      ),
+      backgroundColor: Colors.black,
+      appBar: _buildTopAppBar(),
       body: RefreshIndicator(
-        key: _refreshIndicatorKey,
-        onRefresh: _refreshHome,
+        onRefresh: () async {
+          await provider.loadMovies(forceRefresh: true);
+          setState(() {
+            randomMovies = provider.getRandomMovies(count: 18);
+          });
+        },
         color: Colors.redAccent,
         backgroundColor: Colors.black,
-        displacement: 30,
-        strokeWidth: 2.5,
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🔍 Search bar
-              Padding(
-                padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
-                child: AppSearchBar(
-                  controller: _searchController,
-                  onChanged: (value) => _onSearchChanged(value, provider),
-                  hintText: "Search Highlights...",
-                ),
-              ),
-
-              const SizedBox(height: 5,),
-              if (isSearching) ...[
-                // 🎯 Search Results
-               const Padding(
-                  padding:  EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: AppText(
-                    "Search Results",
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w300,
-                  ),
-                ),
-                searchResults.isEmpty
-                    ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 60),
-                    child: AppText(
-                      "No results found",
-                      color: Colors.white70,
-                    ),
-                  ),
-                )
-                    : ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: searchResults.length,
-                  itemBuilder: (context, index) {
-                    final movie = searchResults[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: VideoCard(
-                        movie: movie,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  VideoPlayerScreen(videoUrl: movie.url,title: movie.name,),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ] else ...[
-                // 🔥 Trending Section
-                _buildTrendingSection(provider, trendingMovies),
-
-                // 🎯 Recommendations
-                _buildRecommendationsSection(),
+              _buildSearchBar(provider),
+              if (isSearching)
+                _buildSearchResults(provider)
+              else ...[
+                _buildSectionTitle("Latest Highlights"),
+                _buildTrendingCarousel(trending),
+                _buildSectionTitle("Recommended for You"),
+                _buildVerticalList(randomMovies),
               ],
             ],
           ),
         ),
       ),
+
+
+      bottomNavigationBar: const HomeBannerAd(),
     );
   }
 
-  Widget _buildTrendingSection(
-      CategoryProvider provider, List trendingMovies) {
-    if (provider.isLoading && trendingMovies.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 40),
-          child: CircularProgressIndicator(color: Colors.redAccent),
-        ),
-      );
-    }
-
-    if (trendingMovies.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
-          child: AppText("No trending videos found", color: Colors.white70),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+  AppBar _buildTopAppBar() {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      title: const AppText(
+        "CricHighlights+",
+        fontSize: 25,
+        fontWeight: FontWeight.w500,
+        color: Colors.white,
+      ),
+      actions: [
         Padding(
-          padding: const EdgeInsets.only(top: 40, left: 20, right: 20),
-          child: Stack(
-            alignment: Alignment.bottomLeft,
-            children: [
-              Container(height: 2, width: 80, color: Colors.redAccent),
-              const AppText(
-                "Latest Highlights",
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w100,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 15),
-        SizedBox(
-          height: 200,
-          child: CarouselSlider.builder(
-            itemCount: trendingMovies.length,
-            itemBuilder: (context, index, realIndex) {
-              final movie = trendingMovies[index];
-              return VideoCard(
-                tag: "Latest",
-                onTap: () {
-                  InterstitialService.showAdIfReady(
-                    onComplete: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => VideoPlayerScreen(videoUrl: movie.url, title: movie.name,),
-                        ),
-                      );
-                    },
-                  );
-                },
-
-                movie: movie,
-              );
-            },
-            options: CarouselOptions(
-              height: 400,
-              enlargeCenterPage: true,
-              enableInfiniteScroll: true,
-              autoPlay: true,
-              autoPlayInterval: const Duration(seconds: 5),
-              autoPlayAnimationDuration: const Duration(milliseconds: 1000),
-              viewportFraction: 0.85,
-              padEnds: true,
-            ),
-          ),
+          padding: const EdgeInsets.only(right: 14),
+          child: Image.asset("assets/images/logo.png", scale: 7),
         ),
       ],
     );
   }
 
-  Widget _buildRecommendationsSection() {
-    final provider = context.watch<CategoryProvider>();
+  Widget _buildSearchBar(CategoryProvider provider) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+      child: AppSearchBar(
+        controller: _searchController,
+        hintText: "Search Highlights...",
+        onChanged: (value) {
+          setState(() {
+            query = value;
+            searchResults = provider.searchMovies(value);
+          });
+        },
+      ),
+    );
+  }
 
-    if (provider.isLoading && randomMovies.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 40),
-          child: CircularProgressIndicator(color: Colors.redAccent),
-        ),
-      );
-    }
-
-    if (randomMovies.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 20),
-        child: Center(
-          child: AppText("No recommendations found", color: Colors.white70),
-        ),
-      );
-    }
-
-    // Calculate total items including ads
-    int totalItems = randomMovies.length + (randomMovies.length ~/ 5);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 40, 20, 16),
-          child: Stack(
-            alignment: Alignment.bottomLeft,
-            children: [
-              Container(height: 2, width: 80, color: Colors.redAccent),
-              const AppText(
-                "Recommended For You",
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w100,
-              ),
-            ],
+  Widget _buildSectionTitle(String text) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 25, 20, 10),
+      child: Row(
+        children: [
+          Container(height: 2, width: 60, color: Colors.redAccent),
+          const SizedBox(width: 10),
+          AppText(
+            text,
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w400,
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrendingCarousel(List<MovieModel> trending) {
+    if (trending.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 10),
+        child: SizedBox(height: 178, child: VideoCardShimmer()),
+      );
+    }
+
+    return CarouselSlider.builder(
+      itemCount: trending.length,
+      itemBuilder: (context, index, _) {
+        final movie = trending[index];
+        return VideoCard(
+          tag: "Latest",
+          movie: movie,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    VideoPlayerScreen(videoUrl: movie.url, title: movie.name,),
+              ),
+            );
+          },
+        );
+      },
+      options: CarouselOptions(
+        height: 178,
+        enlargeCenterPage: true,
+        viewportFraction: 0.80,
+        autoPlay: true,
+        autoPlayInterval: const Duration(seconds: 5),
+        autoPlayAnimationDuration: const Duration(milliseconds: 900),
+      ),
+    );
+  }
+
+  Widget _buildSearchResults(CategoryProvider provider) {
+    if (searchResults.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 80),
+        child: Center(
+          child: AppText("No results found", color: Colors.white70),
         ),
-        AnimationLimiter(
-          child: ListView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: totalItems,
-            itemBuilder: (context, index) {
-              // Every 5th item: show ad
-              if ((index + 1) % 6 == 0) { // index 5, 11, 17 ...
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: HomeBannerAd(),
-                );
-              }
+      );
+    }
 
-              // Adjust index to get the correct movie
-              int movieIndex = index - (index ~/ 6);
-              final movie = randomMovies[movieIndex];
-
-              return AnimationConfiguration.staggeredList(
-                position: index,
-                duration: const Duration(milliseconds: 400),
-                child: SlideAnimation(
-                  verticalOffset: 50.0,
-                  child: FadeInAnimation(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
-                      child: VideoCard(
-                        movie: movie,
-                          onTap: () {
-                            InterstitialService.showAdIfReady(
-                              onComplete: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => VideoPlayerScreen(videoUrl: movie.url, title: movie.name,),
-                                  ),
-                                );
-                              },
-                            );
-                          }
-
-                      ),
-                    ),
-                  ),
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      itemCount: searchResults.length,
+      itemBuilder: (_, i) {
+        final movie = searchResults[i];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 18),
+          child: VideoCard(
+            movie: movie,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      VideoPlayerScreen(videoUrl: movie.url, title: movie.name),
                 ),
               );
             },
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 
+  Widget _buildVerticalList(List<MovieModel> list) {
+    if (list.isEmpty) {
+      return ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 6,
+        itemBuilder: (_, index) => const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: VideoCardShimmer(),
+        ),
+      );
+    }
+
+    return AnimationLimiter(
+      child: ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: list.length,
+        itemBuilder: (_, index) {
+          final movie = list[index];
+
+          return AnimationConfiguration.staggeredList(
+            position: index,
+            duration: const Duration(milliseconds: 400),
+            child: SlideAnimation(
+              verticalOffset: 50,
+              child: FadeInAnimation(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  child: VideoCard(
+                    movie: movie,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => VideoPlayerScreen(
+                            videoUrl: movie.url,
+                            title: movie.name,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }

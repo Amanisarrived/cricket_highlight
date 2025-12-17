@@ -1,3 +1,4 @@
+import 'package:cricket_highlight/model/simplecategory.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cricket_highlight/model/moviemodel.dart';
 import '../service/app_service.dart';
@@ -7,6 +8,7 @@ class CategoryProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
 
   List<CategoryModel> _categories = [];
+  List<SimpleCategory> _simplecategories = [];
   List<MovieModel> _movies = [];
 
   bool _isLoading = false;
@@ -17,6 +19,7 @@ class CategoryProvider with ChangeNotifier {
 
   List<CategoryModel> get categories => _categories;
   List<MovieModel> get movies => _movies;
+  List<SimpleCategory> get simplecategories => _simplecategories;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -109,5 +112,24 @@ class CategoryProvider with ChangeNotifier {
     return _movies
         .where((movie) => movie.name.toLowerCase().contains(lowerQuery))
         .toList();
+  }
+
+  Future<void> fetchCategories() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _simplecategories = await _apiService.fetchSimpleCategories();
+      if (categories.isEmpty) {
+        _errorMessage = "No categories found";
+      } else {
+        _errorMessage = null;
+      }
+    } catch (e) {
+     _errorMessage = e.toString();
+    }
+
+   _isLoading = false;
+    notifyListeners();
   }
 }

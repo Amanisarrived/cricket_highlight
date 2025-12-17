@@ -13,10 +13,8 @@ class ApiService {
     ),
   );
 
-  /// Cache raw movie JSON data for category filtering
   List<Map<String, dynamic>> _cachedRawMovies = [];
 
-  /// Fetch all categories
   Future<List<CategoryModel>> fetchCategories() async {
     try {
       final response = await _dio.get("categories");
@@ -50,9 +48,9 @@ class ApiService {
         if (data != null && data["movies"] != null) {
           final moviesList = (data["movies"] as List);
 
-          // Cache raw JSON for category-based filtering later
-          _cachedRawMovies =
-          List<Map<String, dynamic>>.from(moviesList.map((e) => Map<String, dynamic>.from(e)));
+          _cachedRawMovies = List<Map<String, dynamic>>.from(
+            moviesList.map((e) => Map<String, dynamic>.from(e)),
+          );
 
           // Convert to MovieModel
           return moviesList.map((e) => MovieModel.fromJson(e)).toList();
@@ -97,21 +95,18 @@ class ApiService {
   Future<List<SimpleCategory>> fetchSimpleCategories() async {
     try {
       final response = await _dio.get("categories");
-
       if (response.statusCode == 200) {
         final data = response.data;
-        final List categories = data["categories"];
-
-        return categories
-            .map((json) => SimpleCategory.fromJson(json))
-            .toList();
+        if (data != null && data['categories'] != null) {
+          final List list = data['categories'];
+          return list.map((c) => SimpleCategory.fromJson(c)).toList();
+        }
+        return []; // agar categories null hai
       } else {
-        throw Exception("Server error: \${response.statusCode}");
+        throw Exception("Server error: ${response.statusCode}");
       }
     } catch (e) {
-      throw Exception("Error fetching simple categories: \$e");
+      throw Exception("Error fetching categories: $e");
     }
   }
-
-
 }

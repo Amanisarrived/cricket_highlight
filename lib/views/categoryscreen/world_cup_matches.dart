@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
 import '../../provider/categoryprovider.dart';
-import '../../widgets/adwidget/interstitialadwidget.dart';
 import '../home/videoplayerscreen.dart';
 
 class WorldcupMatches extends StatefulWidget {
@@ -22,15 +21,19 @@ class _WorldcupMatchesState extends State<WorldcupMatches> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_hasLoadedOnce) {
-      Provider.of<CategoryProvider>(context, listen: false)
-          .loadMovies(forceRefresh: false);
+      Provider.of<CategoryProvider>(
+        context,
+        listen: false,
+      ).loadMovies(forceRefresh: false);
       _hasLoadedOnce = true;
     }
   }
 
   Future<void> _reloadData() async {
-    await Provider.of<CategoryProvider>(context, listen: false)
-        .loadMovies(forceRefresh: true);
+    await Provider.of<CategoryProvider>(
+      context,
+      listen: false,
+    ).loadMovies(forceRefresh: true);
   }
 
   bool get _isAtTop =>
@@ -63,57 +66,55 @@ class _WorldcupMatchesState extends State<WorldcupMatches> {
         displacement: 30,
         child: provider.isLoading
             ? const Center(
-          child: CircularProgressIndicator(color: Colors.redAccent),
-        )
+                child: CircularProgressIndicator(color: Colors.redAccent),
+              )
             : twenty.isEmpty
             ? const Center(
-          child: AppText(
-            "No Highlights found.",
-            color: Colors.white70,
-            fontSize: 14,
-          ),
-        )
+                child: AppText(
+                  "No Highlights found.",
+                  color: Colors.white70,
+                  fontSize: 14,
+                ),
+              )
             : AnimationLimiter(
-          child: ListView.builder(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
-            ),
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 50),
-            itemCount: twenty.length,
-            itemBuilder: (context, index) {
-              final movie = twenty[index];
-              return AnimationConfiguration.staggeredList(
-                position: index,
-                duration: const Duration(milliseconds: 400),
-                child: SlideAnimation(
-                  verticalOffset: 50.0,
-                  child: FadeInAnimation(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: VideoCard(
-                        movie: movie,
-                          onTap: () {
-                            InterstitialService.showAdIfReady(
-                              onComplete: () {
+                child: ListView.builder(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 50),
+                  itemCount: twenty.length,
+                  itemBuilder: (context, index) {
+                    final movie = twenty[index];
+                    return AnimationConfiguration.staggeredList(
+                      position: index,
+                      duration: const Duration(milliseconds: 400),
+                      child: SlideAnimation(
+                        verticalOffset: 50.0,
+                        child: FadeInAnimation(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: VideoCard(
+                              movie: movie,
+                              onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => VideoPlayerScreen(videoUrl: movie.url
-                                      , title: movie.name,),
+                                    builder: (_) => VideoPlayerScreen(
+                                      videoUrl: movie.url,
+                                      title: movie.name,
+                                    ),
                                   ),
                                 );
                               },
-                            );
-                          }
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-        ),
+              ),
       ),
     );
   }

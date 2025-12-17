@@ -9,7 +9,7 @@ class VideoCard extends StatelessWidget {
   final MovieModel movie;
   final VoidCallback onTap;
 
-  /// Optional LATEST tag badge
+
   final String? tag;
 
   const VideoCard({

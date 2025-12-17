@@ -2,8 +2,11 @@ import 'dart:io';
 import 'package:cricket_highlight/model/hive_movie_model.dart';
 import 'package:cricket_highlight/provider/categoryprovider.dart';
 import 'package:cricket_highlight/provider/saved_video_provider.dart';
+import 'package:cricket_highlight/service/notification_service.dart';
 import 'package:cricket_highlight/views/home/splashscreen.dart';
 import 'package:cricket_highlight/views/onbording/onbording_screen.dart';
+import 'package:cricket_highlight/widgets/adwidget/openadservcie.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -13,27 +16,39 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() async {
+import 'firebase_options.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-  await MobileAds.instance.initialize();
 
 
-  RequestConfiguration requestConfiguration = RequestConfiguration(
-    testDeviceIds: [
-      "C142502C33014B2CA7044B6383AA3F57",
-    ],
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  MobileAds.instance.updateRequestConfiguration(requestConfiguration);
+
+
+  await dotenv.load(fileName: ".env");
+
+
+
+
+
+
+  await MobileAds.instance.initialize();
+
 
   if (Platform.isAndroid) {
     InAppWebViewPlatform.instance = AndroidInAppWebViewPlatform();
   }
 
+
   await Hive.initFlutter();
   Hive.registerAdapter(HiveMovieModelAdapter());
   await Hive.openBox<HiveMovieModel>('saved_videos');
+
+
+  AppOpenAdService().loadAd();
 
   runApp(
     MultiProvider(
@@ -56,11 +71,13 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   bool _isLoading = true;
   bool _showOnboarding = true;
+  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
     super.initState();
     _checkFirstLaunch();
+    _notificationService.init(context);
   }
 
   Future<void> _checkFirstLaunch() async {
@@ -74,7 +91,7 @@ class _MyAppState extends State<MyApp> {
       _showOnboarding = false;
     }
 
-    setState(() => _isLoading = false);
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override

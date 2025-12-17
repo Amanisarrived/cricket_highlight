@@ -71,7 +71,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _loadRecommendations();
   }
 
-  // ---------- SEEK CONTROLS ----------
 
   void _seekForward() {
     final current = _controller.value.position;
@@ -102,7 +101,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     });
   }
 
-  // ---------- EXIT HANDLING ----------
   Future<void> _handlePop(BuildContext context) async {
     if (_isDisposing) return;
     _isDisposing = true;
@@ -134,9 +132,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     super.dispose();
   }
 
-  // ----------------------------------------------------
-  // ---------------------- UI --------------------------
-  // ----------------------------------------------------
+
 
   @override
   Widget build(BuildContext context) {
@@ -199,9 +195,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
                 const SizedBox(height: 12),
 
-                // =======================
-                //     PLAYER AREA
-                // =======================
+
                 GestureDetector(
                   onDoubleTapDown: (details) {
                     final width = MediaQuery.of(context).size.width;
@@ -234,7 +228,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                         AnimatedOpacity(
                           opacity: _showLeftIndicator ? 1 : 0,
                           duration: const Duration(milliseconds: 200),
-                          child: Align(
+                          child: const Align(
                             alignment: Alignment.centerLeft,
                             child: Padding(
                               padding: const EdgeInsets.only(left: 30),
@@ -248,7 +242,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                         AnimatedOpacity(
                           opacity: _showRightIndicator ? 1 : 0,
                           duration: const Duration(milliseconds: 200),
-                          child: Align(
+                          child: const Align(
                             alignment: Alignment.centerRight,
                             child: Padding(
                               padding: const EdgeInsets.only(right: 30),
@@ -264,7 +258,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
                 const SizedBox(height: 5),
 
-                // TITLE
+
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: AppText(
@@ -275,9 +269,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                   ),
                 ),
 
-                // ======================
-                //   RECOMMENDATIONS
-                // ======================
+
                 Expanded(
                   child: Container(
                     width: double.infinity,

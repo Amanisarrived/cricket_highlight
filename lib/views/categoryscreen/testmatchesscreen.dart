@@ -25,8 +25,10 @@ class _TestMatchesScreenState extends State<TestMatchesScreen> {
     super.initState();
     // Auto-refresh every 30 minutes
     _autoRefreshTimer = Timer.periodic(const Duration(minutes: 30), (timer) {
-      Provider.of<CategoryProvider>(context, listen: false)
-          .loadMovies(forceRefresh: true);
+      Provider.of<CategoryProvider>(
+        context,
+        listen: false,
+      ).loadMovies(forceRefresh: true);
     });
   }
 
@@ -34,8 +36,10 @@ class _TestMatchesScreenState extends State<TestMatchesScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_hasLoadedOnce) {
-      Provider.of<CategoryProvider>(context, listen: false)
-          .loadMovies(forceRefresh: false);
+      Provider.of<CategoryProvider>(
+        context,
+        listen: false,
+      ).loadMovies(forceRefresh: false);
       _hasLoadedOnce = true;
     }
   }
@@ -48,8 +52,10 @@ class _TestMatchesScreenState extends State<TestMatchesScreen> {
   }
 
   Future<void> _reloadData() async {
-    await Provider.of<CategoryProvider>(context, listen: false)
-        .loadMovies(forceRefresh: true);
+    await Provider.of<CategoryProvider>(
+      context,
+      listen: false,
+    ).loadMovies(forceRefresh: true);
   }
 
   bool get _isAtTop =>
@@ -63,11 +69,7 @@ class _TestMatchesScreenState extends State<TestMatchesScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const AppText(
-          "Test Matches",
-          fontSize: 25,
-          color: Colors.white,
-        ),
+        title: const AppText("Test Matches", fontSize: 25, color: Colors.white),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -82,56 +84,55 @@ class _TestMatchesScreenState extends State<TestMatchesScreen> {
         displacement: 30,
         child: provider.isLoading
             ? const Center(
-          child: CircularProgressIndicator(color: Colors.redAccent),
-        )
+                child: CircularProgressIndicator(color: Colors.redAccent),
+              )
             : testMatches.isEmpty
             ? const Center(
-          child: AppText(
-            "No Highlights found.",
-            color: Colors.white70,
-            fontSize: 14,
-          ),
-        )
+                child: AppText(
+                  "No Highlights found.",
+                  color: Colors.white70,
+                  fontSize: 14,
+                ),
+              )
             : AnimationLimiter(
-          child: ListView.builder(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
-            ),
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 50),
-            itemCount: testMatches.length,
-            itemBuilder: (context, index) {
-              final movie = testMatches[index];
-              return AnimationConfiguration.staggeredList(
-                position: index,
-                duration: const Duration(milliseconds: 400),
-                child: SlideAnimation(
-                  verticalOffset: 50.0,
-                  child: FadeInAnimation(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: VideoCard(
-                        movie: movie,
-                          onTap: () {
-                            InterstitialService.showAdIfReady(
-                              onComplete: () {
+                child: ListView.builder(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 50),
+                  itemCount: testMatches.length,
+                  itemBuilder: (context, index) {
+                    final movie = testMatches[index];
+                    return AnimationConfiguration.staggeredList(
+                      position: index,
+                      duration: const Duration(milliseconds: 400),
+                      child: SlideAnimation(
+                        verticalOffset: 50.0,
+                        child: FadeInAnimation(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: VideoCard(
+                              movie: movie,
+                              onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => VideoPlayerScreen(videoUrl: movie.url, title: movie.name,),
+                                    builder: (_) => VideoPlayerScreen(
+                                      videoUrl: movie.url,
+                                      title: movie.name,
+                                    ),
                                   ),
                                 );
                               },
-                            );
-                          }
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-        ),
+              ),
       ),
     );
   }

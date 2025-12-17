@@ -1,9 +1,10 @@
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:cricket_highlight/views/home/homescreen.dart';
 import 'package:cricket_highlight/views/categoryscreen/categoryscreen.dart';
 import 'package:cricket_highlight/views/home/savedscreen.dart';
-import 'package:cricket_highlight/views/home/settingscreen.dart';
+import 'package:cricket_highlight/views/settingscreens/settingscreen.dart';
 
 class MainScreenState extends StatefulWidget {
   const MainScreenState({super.key});
@@ -16,7 +17,7 @@ class _MainScreenStateState extends State<MainScreenState> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = const [
-    Homescreen(),
+    HomeScreen(),
     Categoryscreen(),
     SavedScreen(),
     Settingscreen(),
