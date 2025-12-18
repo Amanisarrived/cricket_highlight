@@ -34,9 +34,10 @@ class CategoryModel {
 class MovieModel {
   final int id;
   final String name;
-  final String url;
+   String url;
   final bool isTrending;
   final DateTime createdAt;
+  final List<int>? categoryIds;
 
   MovieModel({
     required this.id,
@@ -44,6 +45,7 @@ class MovieModel {
     required this.url,
     required this.isTrending,
     required this.createdAt,
+    this.categoryIds
   });
 
   factory MovieModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,9 @@ class MovieModel {
       url: json['url'] ?? '',
       isTrending: json['is_trending'] ?? false,
       createdAt: DateTime.parse(json['created_at']),
+      categoryIds: (json['categories'] as List?)
+          ?.map((c) => c['id'] as int)
+          .toList(), // 👈 null-safe
     );
   }
 
@@ -63,6 +68,7 @@ class MovieModel {
       'url': url,
       'is_trending': isTrending,
       'created_at': createdAt.toIso8601String(),
+      "categories" : categoryIds
     };
   }
 }

@@ -93,17 +93,18 @@ class CategoryProvider with ChangeNotifier {
     return _apiService.getMoviesByCategoryId(categoryId);
   }
 
-  List<MovieModel> getRandomMovies({int count = 10, int? excludeMovieId}) {
+  List<MovieModel> getRandomMovies({int count = 10}) {
     final random = Random();
-    final availableMovies = List<MovieModel>.from(_movies);
 
-    if (excludeMovieId != null) {
-      availableMovies.removeWhere((m) => m.id == excludeMovieId);
-    }
+    final availableMovies = _movies.where((movie) {
+      final categories = movie.categoryIds ?? [];
+      return !categories.contains(45);
+    }).toList();
 
     availableMovies.shuffle(random);
     return availableMovies.take(count).toList();
   }
+
 
   List<MovieModel> searchMovies(String query) {
     if (query.isEmpty) return _movies;

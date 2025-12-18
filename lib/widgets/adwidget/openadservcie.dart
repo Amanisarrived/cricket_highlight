@@ -6,11 +6,15 @@ class AppOpenAdService {
 
   AppOpenAdService._internal();
 
+  static bool isReelsScreenOpen = false; // 🔥 reels guard
+
   AppOpenAd? _appOpenAd;
   bool _isShowingAd = false;
   bool _isLoading = false;
 
   final String adUnitId = "ca-app-pub-2590111716650280/4670010385";
+
+  /// Load Open App Ad
   void loadAd() {
     if (_isLoading) return;
 
@@ -32,9 +36,23 @@ class AppOpenAdService {
     );
   }
 
+  /// Show Open App Ad if available
   void showAdIfAvailable({required void Function() onComplete}) {
-    if (_appOpenAd == null) return;
-    if (_isShowingAd) return;
+    // ❌ reels ke beech open ad nahi
+    if (isReelsScreenOpen) {
+      onComplete();
+      return;
+    }
+
+    if (_appOpenAd == null) {
+      onComplete();
+      return;
+    }
+
+    if (_isShowingAd) {
+      onComplete();
+      return;
+    }
 
     _isShowingAd = true;
 
@@ -42,12 +60,14 @@ class AppOpenAdService {
       onAdDismissedFullScreenContent: (ad) {
         _isShowingAd = false;
         _appOpenAd = null;
-        loadAd(); // Load next ad immediately
+        loadAd(); // preload next
+        onComplete();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         _isShowingAd = false;
         _appOpenAd = null;
         loadAd();
+        onComplete();
       },
     );
 

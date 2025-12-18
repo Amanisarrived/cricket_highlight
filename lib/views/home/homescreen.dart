@@ -1,5 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cricket_highlight/provider/categoryprovider.dart';
+import 'package:cricket_highlight/utils/fadenavigation.dart';
+import 'package:cricket_highlight/views/home/savedscreen.dart';
 import 'package:cricket_highlight/views/home/videoplayerscreen.dart';
 import 'package:cricket_highlight/widgets/app_search_bar.dart';
 import 'package:cricket_highlight/widgets/apptext.dart';
@@ -7,6 +9,7 @@ import 'package:cricket_highlight/widgets/video_card.dart';
 import 'package:cricket_highlight/widgets/adwidget/homebannerad.dart';
 import 'package:cricket_highlight/widgets/adwidget/openadservcie.dart'; // ← APP OPEN AD SERVICE
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
@@ -31,18 +34,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-
       AppOpenAdService().loadAd();
 
-
       Future.delayed(const Duration(milliseconds: 800), () {
-        AppOpenAdService().showAdIfAvailable(
-          onComplete: () {
-
-          },
-        );
+        AppOpenAdService().showAdIfAvailable(onComplete: () {});
       });
 
       // Load home screen movies
@@ -71,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onRefresh: () async {
           await provider.loadMovies(forceRefresh: true);
           setState(() {
-            randomMovies = provider.getRandomMovies(count: 18);
+            randomMovies = provider.getRandomMovies(count: 18,);
           });
         },
         color: Colors.redAccent,
@@ -94,7 +90,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
 
-
       bottomNavigationBar: const HomeBannerAd(),
     );
   }
@@ -112,8 +107,17 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       actions: [
         Padding(
-          padding: const EdgeInsets.only(right: 14),
-          child: Image.asset("assets/images/logo.png", scale: 7),
+          padding: const EdgeInsets.only(right: 10),
+          child: IconButton(
+            onPressed: () {
+              Navigator.push(context,FadePageRoute(page: const SavedScreen()));
+            },
+            icon: const Icon(
+              LucideIcons.bookmark,
+              size: 28,
+              color: Colors.redAccent,
+            ),
+          ),
         ),
       ],
     );
@@ -173,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
               context,
               MaterialPageRoute(
                 builder: (_) =>
-                    VideoPlayerScreen(videoUrl: movie.url, title: movie.name,),
+                    VideoPlayerScreen(videoUrl: movie.url, title: movie.name),
               ),
             );
           },
