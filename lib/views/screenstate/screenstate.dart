@@ -1,4 +1,3 @@
-
 import 'package:cricket_highlight/views/home/shortsscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -17,10 +16,10 @@ class MainScreenState extends StatefulWidget {
 class _MainScreenStateState extends State<MainScreenState> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens =  [
+  final List<Widget> _screens = [
     HomeScreen(),
-    Categoryscreen(),
     ReelsScreen(),
+    Categoryscreen(),
     Settingscreen(),
   ];
 
@@ -71,13 +70,14 @@ class _MainScreenStateState extends State<MainScreenState> {
                     icon: Icon(LucideIcons.home),
                     label: "Home",
                   ),
-                  BottomNavigationBarItem(
-                    icon: Icon(LucideIcons.layoutGrid),
-                    label: "Category",
-                  ),
+
                   BottomNavigationBarItem(
                     icon: Icon(LucideIcons.play),
                     label: "CrickShort",
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(LucideIcons.layoutGrid),
+                    label: "Category",
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(LucideIcons.settings),

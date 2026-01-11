@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -16,7 +15,7 @@ class ReelsScreen extends StatefulWidget {
 class _ReelsScreenState extends State<ReelsScreen> {
   final PageController _pageController = PageController();
   List<MovieModel> reels = [];
-  Map<int, YoutubePlayerController> _controllers = {};
+  final Map<int, YoutubePlayerController> _controllers = {};
   int _currentPage = 0;
   bool _dataLoaded = false; // track if screen has loaded data
 

@@ -41,7 +41,7 @@ class _SplashscreenState extends State<Splashscreen>
     )..repeat();
 
     // Navigate to next screen after 5 seconds
-    Future.delayed(const Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 2), () {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const MainScreenState()),
       );

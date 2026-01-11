@@ -94,7 +94,11 @@ class _SettingscreenState extends State<Settingscreen> {
               title: 'Rate Us',
               onTap: () async {
                 if (await inAppReview.isAvailable()) {
-                  inAppReview.requestReview();
+                  // Directly open Play Store page
+                  inAppReview.openStoreListing(
+                    appStoreId: '', // iOS (leave empty for Android)
+                    microsoftStoreId: '', // optional
+                  );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -104,6 +108,7 @@ class _SettingscreenState extends State<Settingscreen> {
                 }
               },
             ),
+
             _buildTile(
               icon: LucideIcons.share2,
               title: 'Share App',

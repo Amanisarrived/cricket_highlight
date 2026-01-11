@@ -1,6 +1,8 @@
 import 'package:cricket_highlight/model/moviemodel.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:uuid/uuid.dart';
+import '../model/news_model.dart';
 import '../model/simplecategory.dart';
 
 class ApiService {
@@ -14,6 +16,7 @@ class ApiService {
   );
 
   List<Map<String, dynamic>> _cachedRawMovies = [];
+  final Uuid _uuid = const Uuid();
 
   Future<List<CategoryModel>> fetchCategories() async {
     try {
@@ -109,4 +112,31 @@ class ApiService {
       throw Exception("Error fetching categories: $e");
     }
   }
+
+  Future<List<NewsModel>> fetchNews() async {
+    try {
+      final response = await _dio.get("news");
+
+      if (response.statusCode != 200) {
+        throw Exception("Server error: ${response.statusCode}");
+      }
+
+      final data = response.data;
+      final List newsList = data?['news'] ?? [];
+
+      return newsList.map((json) {
+        return NewsModel.fromJson(
+          json,
+          id: _uuid.v4(),
+        );
+      }).toList();
+    } on DioException catch (e) {
+      throw Exception(_handleDioError(e));
+    } catch (e) {
+      throw Exception("Unexpected error: $e");
+    }
+  }
+
+
+
 }

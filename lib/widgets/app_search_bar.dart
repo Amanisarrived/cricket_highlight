@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class AppSearchBar extends StatefulWidget {
-  final String hintText;
   final ValueChanged<String>? onChanged;
   final VoidCallback? onTap;
   final TextEditingController? controller;
@@ -12,9 +12,11 @@ class AppSearchBar extends StatefulWidget {
   final Color iconColor;
   final double borderRadius;
 
+  /// 0 = Highlights, 1 = News
+  final int currentTabIndex;
+
   const AppSearchBar({
     super.key,
-    this.hintText = 'Search...',
     this.onChanged,
     this.onTap,
     this.controller,
@@ -23,6 +25,7 @@ class AppSearchBar extends StatefulWidget {
     this.hintColor = Colors.grey,
     this.iconColor = Colors.redAccent,
     this.borderRadius = 14,
+    required this.currentTabIndex,
   });
 
   @override
@@ -31,19 +34,29 @@ class AppSearchBar extends StatefulWidget {
 
 class _AppSearchBarState extends State<AppSearchBar> {
   late TextEditingController _controller;
+  late FocusNode _focusNode;
   bool _hasText = false;
 
   @override
   void initState() {
     super.initState();
     _controller = widget.controller ?? TextEditingController();
-    _hasText = _controller.text.isNotEmpty;
+    _focusNode = FocusNode();
 
+    _hasText = _controller.text.isNotEmpty;
     _controller.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    if (!mounted) return;
+    setState(() {
+      _hasText = _controller.text.isNotEmpty;
+    });
   }
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _controller.removeListener(_onTextChanged);
     if (widget.controller == null) {
       _controller.dispose();
@@ -51,44 +64,71 @@ class _AppSearchBarState extends State<AppSearchBar> {
     super.dispose();
   }
 
-  void _onTextChanged() {
-    if(mounted){
-      setState(() {
-        _hasText = _controller.text.isNotEmpty;
-      });
-    }
+  /// 🔥 Animated hint (NO focus issues)
+  Widget _animatedHint() {
+    final text = widget.currentTabIndex == 0
+        ? "Search Highlights..."
+        : "Search News...";
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 250),
+      child: Text(
+        text,
+        key: ValueKey(text),
+        style: GoogleFonts.poppins(
+          color: widget.hintColor,
+          fontSize: 16,
+        ),
+      ),
+      transitionBuilder: (child, animation) =>
+          FadeTransition(opacity: animation, child: child),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: widget.backgroundColor,
         borderRadius: BorderRadius.circular(widget.borderRadius),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: [
-          Icon(Icons.search, color: widget.iconColor, size: 24),
+          Icon(
+            LucideIcons.search,
+            color: widget.iconColor,
+            size: 22,
+          ),
           const SizedBox(width: 10),
           Expanded(
-            child: TextField(
-              controller: _controller,
-              readOnly: widget.readOnly,
-              onChanged: widget.onChanged,
-              onTap: widget.onTap,
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-              decoration: InputDecoration(
-                hintText: widget.hintText,
-                hintStyle: GoogleFonts.poppins(
-                  color: widget.hintColor,
-                  fontSize: 16,
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                if (!_hasText)
+                  IgnorePointer(
+                    child: _animatedHint(),
+                  ),
+                TextField(
+                  focusNode: _focusNode,
+                  controller: _controller,
+                  readOnly: widget.readOnly,
+                  onChanged: widget.onChanged,
+                  onTap: widget.onTap,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 16,
+                    height: 1.2,
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding:
+                    EdgeInsets.symmetric(vertical: 18),
+                  ),
                 ),
-                border: InputBorder.none,
-              ),
+              ],
             ),
           ),
           if (_hasText)
@@ -96,8 +136,13 @@ class _AppSearchBarState extends State<AppSearchBar> {
               onTap: () {
                 _controller.clear();
                 widget.onChanged?.call('');
+                _focusNode.requestFocus(); // 🔥 keep focus
               },
-              child: Icon(Icons.clear, color: widget.iconColor, size: 24),
+              child: Icon(
+                Icons.clear,
+                color: widget.iconColor,
+                size: 22,
+              ),
             ),
         ],
       ),
