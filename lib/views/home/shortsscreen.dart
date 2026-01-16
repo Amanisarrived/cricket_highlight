@@ -1,8 +1,7 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import '../../model/moviemodel.dart';
+import '../../provider/reel_provider.dart';
 import '../../provider/categoryprovider.dart';
 
 class ReelsScreen extends StatefulWidget {
@@ -14,114 +13,79 @@ class ReelsScreen extends StatefulWidget {
 
 class _ReelsScreenState extends State<ReelsScreen> {
   final PageController _pageController = PageController();
-  List<MovieModel> reels = [];
   final Map<int, YoutubePlayerController> _controllers = {};
-  int _currentPage = 0;
-  bool _dataLoaded = false; // track if screen has loaded data
 
   @override
   void initState() {
     super.initState();
 
     Future.microtask(() async {
-      final provider = context.read<CategoryProvider>();
+      final catProvider = context.read<CategoryProvider>();
+      final reelsProvider = context.read<ReelsProvider>();
 
-      // Agar movies stale ya empty hai → fetch kare
-      if (provider.isMoviesStale || provider.movies.isEmpty) {
-        await provider.loadMovies();
+      if (catProvider.movies.isEmpty) {
+        await catProvider.loadMovies();
       }
 
-      _initReels(provider);
+      await reelsProvider.initReels(catProvider);
+
+      _initController(0);
+      _initController(1);
+      setState(() {});
     });
   }
 
-  void _initReels(CategoryProvider provider) {
-    if (_dataLoaded) return;
-
-    final fetched = provider.getMoviesByCategoryId(45);
-
-    reels = fetched.where((movie) {
-      final url = convertShortsToWatchUrl(movie.url);
-      if (url.isEmpty) return false;
-      movie.url = url;
-      return true;
-    }).toList();
-
-    // 🔥 Shuffle + Reverse
-    reels.shuffle(Random());
-    reels = reels.reversed.toList();
-
-    if (reels.isEmpty) return;
-
-    _dataLoaded = true;
-    setState(() {});
-
-    _initializeController(0);
-  }
-
-
-  void _initializeController(int index) {
+  void _initController(int index) {
+    final reels = context.read<ReelsProvider>().visibleReels;
+    if (index < 0 || index >= reels.length) return;
     if (_controllers.containsKey(index)) return;
-    final movie = reels[index];
-    final videoId = YoutubePlayer.convertUrlToId(movie.url);
+
+    final url = convertShortsToWatchUrl(reels[index].url);
+    final videoId = YoutubePlayer.convertUrlToId(url);
     if (videoId == null) return;
 
-    final controller = YoutubePlayerController(
+    _controllers[index] = YoutubePlayerController(
       initialVideoId: videoId,
       flags: const YoutubePlayerFlags(
         autoPlay: true,
-        mute: false,
         loop: true,
         hideControls: true,
-        disableDragSeek: true,
       ),
     );
 
-    _controllers[index] = controller;
-
-    _disposeFarControllers(index);
+    _disposeFar(index);
   }
 
-  void _disposeFarControllers(int currentIndex) {
-    final keys = _controllers.keys.toList();
-    for (final k in keys) {
-      if ((k - currentIndex).abs() > 1) {
-        _controllers[k]?.pause();
-        _controllers[k]?.dispose();
-        _controllers.remove(k);
-      }
-    }
-  }
-
-  void _onPageChanged(int index) {
-    setState(() => _currentPage = index);
-
-    _initializeController(index);
-    if (index + 1 < reels.length) _initializeController(index + 1);
-    if (index - 1 >= 0) _initializeController(index - 1);
-
-    _controllers.forEach((key, ctrl) {
-      if (key == index) {
-        if (!ctrl.value.isPlaying && ctrl.value.isReady) ctrl.play();
-      } else {
-        if (ctrl.value.isPlaying) ctrl.pause();
-      }
+  void _disposeFar(int index) {
+    _controllers.keys
+        .where((k) => (k - index).abs() > 1)
+        .toList()
+        .forEach((k) {
+      _controllers[k]?.dispose();
+      _controllers.remove(k);
     });
   }
 
-  @override
-  void dispose() {
-    _controllers.forEach((_, ctrl) => ctrl.dispose());
-    _pageController.dispose();
-    super.dispose();
+  void _onPageChanged(int index) {
+    final provider = context.read<ReelsProvider>();
+    provider.loadMoreIfNeeded(index);
+
+    _initController(index);
+    _initController(index + 1);
+
+    _controllers.forEach((k, c) {
+      k == index ? c.play() : c.pause();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final reels = context.watch<ReelsProvider>().visibleReels;
+
     if (reels.isEmpty) {
       return const Scaffold(
         backgroundColor: Colors.black,
-        body: Center(child: CircularProgressIndicator(color: Colors.white)),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -132,58 +96,26 @@ class _ReelsScreenState extends State<ReelsScreen> {
         scrollDirection: Axis.vertical,
         itemCount: reels.length,
         onPageChanged: _onPageChanged,
-        itemBuilder: (context, index) {
-          final movie = reels[index];
+        itemBuilder: (_, index) {
           final controller = _controllers[index];
-
           if (controller == null) {
-            return const Center(child: CircularProgressIndicator(color: Colors.white));
+            _initController(index);
+            return const Center(child: CircularProgressIndicator());
           }
 
-          return YoutubePlayerBuilder(
-            player: YoutubePlayer(
-              controller: controller,
-              showVideoProgressIndicator: false,
-            ),
-            builder: (context, player) {
-              return Stack(
-                alignment: Alignment.bottomLeft,
-                children: [
-                  SizedBox.expand(child: player),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      movie.name,
-                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
+          return YoutubePlayer(controller: controller);
         },
       ),
     );
   }
 }
 
-/// ----------------
-/// Helper functions
-/// ----------------
-
 String convertShortsToWatchUrl(String url) {
   final uri = Uri.tryParse(url);
   if (uri == null) return '';
-  if (uri.host.contains('youtube.com')) {
-    if (uri.pathSegments.contains('shorts') && uri.pathSegments.length >= 2) {
-      final id = uri.pathSegments[1].split('?')[0];
-      return 'https://www.youtube.com/watch?v=$id';
-    } else if (uri.queryParameters.containsKey('v')) {
-      return url;
-    }
-  } else if (uri.host.contains('youtu.be')) {
-    final id = uri.pathSegments[0];
-    return 'https://www.youtube.com/watch?v=$id';
+
+  if (uri.path.contains('shorts')) {
+    return 'https://www.youtube.com/watch?v=${uri.pathSegments.last}';
   }
-  return '';
+  return url;
 }

@@ -33,7 +33,6 @@ class _SettingscreenState extends State<Settingscreen> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     final InAppReview inAppReview = InAppReview.instance;
@@ -93,14 +92,17 @@ class _SettingscreenState extends State<Settingscreen> {
               icon: LucideIcons.star,
               title: 'Rate Us',
               onTap: () async {
-                if (await inAppReview.isAvailable()) {
-                  // Directly open Play Store page
+                final messenger = ScaffoldMessenger.of(context);
+
+                final isAvailable = await inAppReview.isAvailable();
+
+                if (isAvailable) {
                   inAppReview.openStoreListing(
-                    appStoreId: '', // iOS (leave empty for Android)
-                    microsoftStoreId: '', // optional
+                    appStoreId: '',
+                    microsoftStoreId: '',
                   );
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     const SnackBar(
                       content: Text('Review not available on this device.'),
                     ),
@@ -109,12 +111,17 @@ class _SettingscreenState extends State<Settingscreen> {
               },
             ),
 
+
+
             _buildTile(
               icon: LucideIcons.share2,
               title: 'Share App',
               onTap: () {
-                Share.share(
-                  'Check out this amazing app: https://play.google.com/store/apps/details?id=com.yourapp',
+                SharePlus.instance.share(
+                  ShareParams(
+                    text:
+                        "'Check out this amazing app: https://play.google.com/store/apps/details?id=com.yourapp',",
+                  ),
                 );
               },
             ),
@@ -133,11 +140,12 @@ class _SettingscreenState extends State<Settingscreen> {
                     backgroundColor: const Color.fromARGB(230, 0, 0, 0),
                     elevation: 6,
                     margin: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: const BorderSide(
-                          color: Colors.redAccent, width: 1),
+                      side: const BorderSide(color: Colors.redAccent, width: 1),
                     ),
                     content: Text('App Version: $appVersion'),
                   ),
@@ -160,10 +168,7 @@ class _SettingscreenState extends State<Settingscreen> {
       decoration: BoxDecoration(
         color: Colors.black,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.redAccent.withAlpha(70),
-          width: 1.5,
-        ),
+        border: Border.all(color: Colors.redAccent.withAlpha(70), width: 1.5),
         boxShadow: [
           BoxShadow(
             color: Colors.redAccent.withAlpha(30),

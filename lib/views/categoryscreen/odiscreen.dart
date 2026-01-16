@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../provider/categoryprovider.dart';
-import '../../widgets/adwidget/interstitialadwidget.dart';
 import '../home/videoplayerscreen.dart';
 
 class OdiScreen extends StatefulWidget {

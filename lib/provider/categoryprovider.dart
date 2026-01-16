@@ -115,6 +115,22 @@ class CategoryProvider with ChangeNotifier {
         .toList();
   }
 
+  Future<List<MovieModel>> getReels({bool refresh = false}) async {
+    if (_movies.isEmpty || isMoviesStale || refresh) {
+      await loadMovies(forceRefresh: true);
+    }
+
+
+    final reels = _movies.where((movie) {
+      final categories = movie.categoryIds ?? [];
+      return categories.contains(45);
+    }).toList();
+
+    debugPrint("CategoryProvider: getReels -> fetched ${reels.length} items");
+
+    return reels;
+  }
+
   Future<void> fetchCategories() async {
     _isLoading = true;
     notifyListeners();

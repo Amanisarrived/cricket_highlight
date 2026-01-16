@@ -133,6 +133,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ];
         },
         body: PageView(
+          physics: const NeverScrollableScrollPhysics(),
           controller: _pageController,
           onPageChanged: (index) {
             _tabController.animateTo(index);

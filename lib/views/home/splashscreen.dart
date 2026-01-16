@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../screenstate/screenstate.dart';
-import 'package:cricket_highlight/widgets/adwidget/openadservcie.dart';
 
 
 class Splashscreen extends StatefulWidget {

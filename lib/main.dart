@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:app_links/app_links.dart';
 import 'package:cricket_highlight/model/hive_movie_model.dart';
 import 'package:cricket_highlight/model/hive_news_model.dart';
 import 'package:cricket_highlight/provider/categoryprovider.dart';
 import 'package:cricket_highlight/provider/news_provider.dart';
+import 'package:cricket_highlight/provider/reel_provider.dart';
 import 'package:cricket_highlight/provider/saved_video_provider.dart';
 import 'package:cricket_highlight/repo/NewsRepository.dart';
+import 'package:cricket_highlight/repo/reels_repo.dart';
 import 'package:cricket_highlight/service/analytics_observer.dart';
 import 'package:cricket_highlight/service/app_service.dart';
 import 'package:cricket_highlight/service/notification_service.dart';
@@ -31,9 +32,7 @@ Future<void> main() async {
 
   MediaKit.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   await dotenv.load(fileName: ".env");
 
@@ -49,6 +48,7 @@ Future<void> main() async {
 
   await Hive.openBox<HiveMovieModel>('saved_videos');
   await Hive.openBox<Newsmodel>('news');
+  await Hive.openBox<HiveMovieModel>('reelsBox');
 
   InterstitialService.load();
 
@@ -57,6 +57,14 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => SavedVideosProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ReelsProvider(
+            repository: ReelsRepository(
+              apiService: ApiService(),
+              reelsBox: Hive.box<HiveMovieModel>('reelsBox'),
+            ),
+          ),
+        ),
         ChangeNotifierProvider(
           create: (_) => NewsProvider(
             repository: NewsRepository(
@@ -84,7 +92,6 @@ class _MyAppState extends State<MyApp> {
 
   final NotificationService _notificationService = NotificationService();
 
-  late final AppLinks _appLinks;
   StreamSubscription<Uri>? _linkSub;
 
   @override
@@ -133,9 +140,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorObservers: [AnalyticsObserver.observer],
-      home: _showOnboarding
-          ? const OnbordingScreen()
-          : const Splashscreen(),
+      home: _showOnboarding ? const OnbordingScreen() : const Splashscreen(),
     );
   }
 }

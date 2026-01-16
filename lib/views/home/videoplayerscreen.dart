@@ -27,11 +27,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   bool _isDisposing = false;
   double _playerOpacity = 1.0;
   List randomMovies = [];
-
- // final bool _showControls = false;
   Timer? _hideTimer;
 
-  // Animation indicator
+
   bool _showLeftIndicator = false;
   bool _showRightIndicator = false;
 
@@ -101,7 +99,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     });
   }
 
-  Future<void> _handlePop(BuildContext context) async {
+  Future<void> _handlePop() async {
     if (_isDisposing) return;
     _isDisposing = true;
 
@@ -117,10 +115,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       _controller.dispose();
     } catch (_) {}
 
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
 
-    if (mounted) Navigator.pop(context);
+    if (!mounted) return;
+    Navigator.of(context).pop();
   }
+
 
   @override
   void dispose() {
@@ -178,7 +180,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                       children: [
                         IconButton(
                           icon: const Icon(Icons.arrow_back, color: Colors.white),
-                          onPressed: () => _handlePop(context),
+                          onPressed: () => _handlePop(),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
@@ -231,7 +233,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                           child: const Align(
                             alignment: Alignment.centerLeft,
                             child: Padding(
-                              padding: const EdgeInsets.only(left: 30),
+                              padding:  EdgeInsets.only(left: 30),
                               child: Icon(Icons.replay_10_rounded,
                                   size: 70, color: Colors.white),
                             ),

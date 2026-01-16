@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../model/hive_news_model.dart';
 import '../repo/NewsRepository.dart';
 
@@ -7,42 +7,36 @@ class NewsProvider extends ChangeNotifier {
 
   NewsProvider({required this.repository});
 
-  // UI states
   bool isLoading = false;
-  String? error;
-  List<Newsmodel> news = [];
+  String? _error;
+  List<Newsmodel> visibleNews = [];
 
+  // 🔥 PUBLIC GETTER
+  String? get error => _error;
 
-  Future<void> loadNews({bool refresh = false}) async {
+  Future<void> init({bool refresh = false}) async {
     isLoading = true;
-    error = null;
+    _error = null;
     notifyListeners();
 
     try {
-      news = await repository.getNews(refresh: refresh); // <-- yaha refresh pass kar
+      await repository.initNews(refresh: refresh);
+      visibleNews = repository.visibleNews;
     } catch (e) {
-      error = e.toString();
+      _error = e.toString();
     }
 
     isLoading = false;
     notifyListeners();
   }
 
-
+  void loadMoreIfNeeded(int index) {
+    repository.loadMoreIfNeeded(index);
+    visibleNews = repository.visibleNews;
+    notifyListeners();
+  }
 
   Future<void> refreshNews() async {
-    isLoading = true;
-    notifyListeners();
-
-    try {
-      news = await repository.getNews(refresh: true);
-      error = null;
-    } catch (e) {
-      error = e.toString();
-    }
-
-    isLoading = false;
-    notifyListeners();
+    await init(refresh: true);
   }
-
 }

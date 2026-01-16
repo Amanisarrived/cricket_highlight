@@ -81,6 +81,8 @@ class NewsCard extends StatelessWidget {
             ),
           ),
 
+
+
           /// 📜 CONTENT
           Expanded(
             child: Padding(
@@ -92,11 +94,12 @@ class NewsCard extends StatelessWidget {
                     news.title,
                     style: GoogleFonts.bebasNeue(
                       color: Colors.white,
-                      fontSize: 22,
+                      fontSize: 20,
                       fontWeight: FontWeight.w500,
-                      height: 1.25,
+                      height: 1.15,
                     ),
                   ),
+                  Divider(thickness: 1,color: Colors.white.withAlpha(40),),
                   const SizedBox(height: 10),
                   Flexible(
                     child: Text(
@@ -105,6 +108,7 @@ class NewsCard extends StatelessWidget {
                         color: Colors.white70,
                         fontSize: 15,
                         height: 1.45,
+                        fontWeight: FontWeight.w200
                       ),
                     ),
                   ),
