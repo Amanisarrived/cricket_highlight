@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest   # Windows runner for absolute path compatibility
+    runs-on: windows-latest   # Windows runner
 
     steps:
       # 1️⃣ Checkout repo
@@ -34,17 +34,25 @@ jobs:
 
       # 6️⃣ Create dummy .env file (if needed)
       - name: Create dummy env file
-        run: New-Item -Path .env -ItemType File
+        run: New-Item -Path .env -ItemType File -Force
 
       # 7️⃣ Copy CI-specific key.properties
       - name: Setup key.properties for CI
         run: copy android/key.properties.ci android/key.properties
 
-      # 8️⃣ Setup Keystore from base64
+      # 8️⃣ Setup Keystore safely
       - name: Setup Keystore
         run: |
-          mkdir -p android/app
-          [System.IO.File]::WriteAllBytes("android/app/my-release-key-new.jks", [System.Convert]::FromBase64String("${{ secrets.KEYSTORE_BASE64 }}"))
+          # Create android/app folder only if it doesn't exist
+          if (-not (Test-Path "android/app")) {
+            New-Item -ItemType Directory -Path "android/app"
+          }
+
+          # Write keystore from base64 secret
+          [System.IO.File]::WriteAllBytes(
+            "android/app/my-release-key-new.jks",
+            [System.Convert]::FromBase64String("${{ secrets.KEYSTORE_BASE64 }}")
+          )
 
       # 9️⃣ Optional debug: check keystore exists
       - name: Debug keystore
