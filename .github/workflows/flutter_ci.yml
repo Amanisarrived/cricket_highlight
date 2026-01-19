@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest   # Use Windows runner to match your absolute path
 
     steps:
       # 1️⃣ Checkout repo
@@ -20,7 +20,7 @@ jobs:
         with:
           channel: 'stable'
 
-      # 3️⃣ Check Flutter version
+      # 3️⃣ Flutter version
       - name: Flutter version
         run: flutter --version
 
@@ -28,23 +28,24 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 5️⃣ Run build_runner for code generation
+      # 5️⃣ Run build_runner
       - name: Run build_runner
         run: flutter pub run build_runner build --delete-conflicting-outputs
 
-      # 6️⃣ Dummy .env file (agar zarurat ho)
+      # 6️⃣ Dummy .env file (optional)
       - name: Create dummy env file
-        run: touch .env
+        run: New-Item -Path .env -ItemType File
 
-      # 7️⃣ Setup Keystore for CI
+      # 7️⃣ Setup Keystore (Windows path)
       - name: Setup Keystore
         run: |
-          mkdir -p android/app
-          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/my-release-key-new.jks
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-
-      # 8️⃣ Build Android AppBundle with secrets
+          $keystorePath = "D:\cricket_highlight"
+          if (!(Test-Path $keystorePath)) {
+            New-Item -Path $keystorePath -ItemType Directory
+          }
+          [System.IO.File]::WriteAllBytes("$keystorePath\my-release-key-new.jks", [System.Convert]::FromBase64String("${{ secrets.KEYSTORE_BASE64 }}"))
+          
+      # 8️⃣ Build Android AppBundle
       - name: Build AppBundle
         run: flutter build appbundle --release
         env:
@@ -52,6 +53,6 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      # 9️⃣ Debug: check keystore file exists
-      - name: Check keystore file
-        run: ls -l android/app
+      # 9️⃣ Debug: check keystore exists
+      - name: Check keystore
+        run: dir D:\cricket_highlight
