@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest   # Use Windows runner to match your absolute path
+    runs-on: windows-latest   # Windows runner for absolute path compatibility
 
     steps:
       # 1️⃣ Checkout repo
@@ -32,27 +32,28 @@ jobs:
       - name: Run build_runner
         run: flutter pub run build_runner build --delete-conflicting-outputs
 
-      # 6️⃣ Dummy .env file (optional)
+      # 6️⃣ Create dummy .env file (if needed)
       - name: Create dummy env file
         run: New-Item -Path .env -ItemType File
 
-      # 7️⃣ Setup Keystore (Windows path)
+      # 7️⃣ Copy CI-specific key.properties
+      - name: Setup key.properties for CI
+        run: copy android/key.properties.ci android/key.properties
+
+      # 8️⃣ Setup Keystore from base64
       - name: Setup Keystore
         run: |
-          $keystorePath = "D:\cricket_highlight"
-          if (!(Test-Path $keystorePath)) {
-            New-Item -Path $keystorePath -ItemType Directory
-          }
-          [System.IO.File]::WriteAllBytes("$keystorePath\my-release-key-new.jks", [System.Convert]::FromBase64String("${{ secrets.KEYSTORE_BASE64 }}"))
-          
-      # 8️⃣ Build Android AppBundle
+          mkdir -p android/app
+          [System.IO.File]::WriteAllBytes("android/app/my-release-key-new.jks", [System.Convert]::FromBase64String("${{ secrets.KEYSTORE_BASE64 }}"))
+
+      # 9️⃣ Optional debug: check keystore exists
+      - name: Debug keystore
+        run: dir android\app
+
+      # 🔟 Build AppBundle
       - name: Build AppBundle
         run: flutter build appbundle --release
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-
-      # 9️⃣ Debug: check keystore exists
-      - name: Check keystore
-        run: dir D:\cricket_highlight
