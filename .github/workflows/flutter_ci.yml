@@ -39,7 +39,7 @@ jobs:
       # 7️⃣ Setup Keystore from GitHub Secrets
       - name: Setup Keystore
         run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/my-release-key.jks
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/my-release-key-new.jks
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
