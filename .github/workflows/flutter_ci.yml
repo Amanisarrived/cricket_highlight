@@ -7,43 +7,48 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest   # Windows runner
+    runs-on: windows-latest
 
     steps:
       # 1️⃣ Checkout repo
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup Flutter
+      # 2️⃣ Setup Flutter (pin version to match your local)
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.38.7'
           channel: 'stable'
 
-      # 3️⃣ Flutter version
+      # 3️⃣ Flutter version (optional, debug)
       - name: Flutter version
         run: flutter --version
 
-      # 4️⃣ Install dependencies
+      # 4️⃣ Clean any previous build (safe step for CI)
+      - name: Clean Flutter build
+        run: flutter clean
+
+      # 5️⃣ Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # 5️⃣ Run build_runner
+      # 6️⃣ Run build_runner to generate files
       - name: Run build_runner
         run: flutter pub run build_runner build --delete-conflicting-outputs
 
-      # 6️⃣ Create dummy .env file (if needed)
+      # 7️⃣ Create dummy .env file if needed
       - name: Create dummy env file
         run: New-Item -Path .env -ItemType File -Force
 
-      # 7️⃣ Copy CI-specific key.properties
+      # 8️⃣ Copy CI-specific key.properties
       - name: Setup key.properties for CI
         run: copy android/key.properties.ci android/key.properties
 
-      # 8️⃣ Setup Keystore safely
+      # 9️⃣ Setup Keystore safely
       - name: Setup Keystore
         run: |
-          # Create android/app folder only if it doesn't exist
+          # Create android/app folder only if missing
           if (-not (Test-Path "android/app")) {
             New-Item -ItemType Directory -Path "android/app"
           }
@@ -54,13 +59,13 @@ jobs:
             [System.Convert]::FromBase64String("${{ secrets.KEYSTORE_BASE64 }}")
           )
 
-      # 9️⃣ Optional debug: check keystore exists
+      # 🔟 Debug keystore exists
       - name: Debug keystore
         run: dir android\app
 
-      # 🔟 Build AppBundle
-      - name: Build AppBundle
-        run: flutter build appbundle --release
+      # 1️⃣1️⃣ Build AppBundle (verbose for CI logs)
+      - name: Build AppBundle (verbose)
+        run: flutter build appbundle --release -v
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
