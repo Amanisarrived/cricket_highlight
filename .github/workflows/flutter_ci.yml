@@ -10,32 +10,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Repo ka code uthao
+      # 1️⃣ Checkout repo
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Latest stable Flutter install
+      # 2️⃣ Setup Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
 
-      # 3️⃣ Flutter version (debug / sanity)
+      # 3️⃣ Check Flutter version
       - name: Flutter version
         run: flutter --version
 
-      # 4️⃣ Dependencies install
+      # 4️⃣ Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # 5️⃣ Code generation (Hive adapters, etc.)
+      # 5️⃣ Run build_runner for code generation
       - name: Run build_runner
         run: flutter pub run build_runner build --delete-conflicting-outputs
 
-      # 6️⃣ Dummy .env file (real secrets repo me nahi)
+      # 6️⃣ Dummy .env file (agar zarurat ho)
       - name: Create dummy env file
         run: touch .env
 
-      # 7️⃣ Android release build (REAL TEST)
+      # 7️⃣ Setup Keystore from GitHub Secrets
+      - name: Setup Keystore
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/my-release-key.jks
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+
+      # 8️⃣ Build Android AppBundle with environment secrets
       - name: Build AppBundle
-        run: flutter build appbundle
+        run: flutter build appbundle --release
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
