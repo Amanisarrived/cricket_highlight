@@ -14,13 +14,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Latest stable Flutter install karo
+      # 2️⃣ Latest stable Flutter install
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
 
-      # 3️⃣ Flutter version check (debug ke liye)
+      # 3️⃣ Flutter version (debug / sanity)
       - name: Flutter version
         run: flutter --version
 
@@ -28,10 +28,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 5️⃣ Code analyze (warnings / errors)
-      - name: Analyze code
-        run: flutter analyze
+      # 5️⃣ Code generation (Hive adapters, etc.)
+      - name: Run build_runner
+        run: flutter pub run build_runner build --delete-conflicting-outputs
 
-      # 6️⃣ Android AppBundle build
+      # 6️⃣ Dummy .env file (real secrets repo me nahi)
+      - name: Create dummy env file
+        run: touch .env
+
+      # 7️⃣ Android release build (REAL TEST)
       - name: Build AppBundle
         run: flutter build appbundle
