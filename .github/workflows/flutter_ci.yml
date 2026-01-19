@@ -36,17 +36,22 @@ jobs:
       - name: Create dummy env file
         run: touch .env
 
-      # 7️⃣ Setup Keystore from GitHub Secrets
+      # 7️⃣ Setup Keystore for CI
       - name: Setup Keystore
         run: |
+          mkdir -p android/app
           echo "$KEYSTORE_BASE64" | base64 --decode > android/app/my-release-key-new.jks
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
-      # 8️⃣ Build Android AppBundle with environment secrets
+      # 8️⃣ Build Android AppBundle with secrets
       - name: Build AppBundle
         run: flutter build appbundle --release
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      # 9️⃣ Debug: check keystore file exists
+      - name: Check keystore file
+        run: ls -l android/app
