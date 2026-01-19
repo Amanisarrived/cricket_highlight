@@ -219,7 +219,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                     }
                   },
                   child: SizedBox(
-                    height: MediaQuery.of(context).size.width * 9 / 16,
+                    height: MediaQuery.of(context).size.width * 11 / 16,
                     width: double.infinity,
                     child: Stack(
                       alignment: Alignment.center,

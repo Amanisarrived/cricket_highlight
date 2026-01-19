@@ -24,15 +24,19 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:youtube_shorts/youtube_shorts.dart';
-
 import 'firebase_options.dart';
+
+// 🔹 Global navigatorKey for safe dialogs
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   MediaKit.ensureInitialized();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   await dotenv.load(fileName: ".env");
 
@@ -42,6 +46,7 @@ Future<void> main() async {
     InAppWebViewPlatform.instance = AndroidInAppWebViewPlatform();
   }
 
+  // 🔹 Hive Init
   await Hive.initFlutter();
   Hive.registerAdapter(HiveMovieModelAdapter());
   Hive.registerAdapter(NewsmodelAdapter());
@@ -49,6 +54,9 @@ Future<void> main() async {
   await Hive.openBox<HiveMovieModel>('saved_videos');
   await Hive.openBox<Newsmodel>('news');
   await Hive.openBox<HiveMovieModel>('reelsBox');
+
+  // 🔹 Review box (key-value)
+  await Hive.openBox('review_box');
 
   InterstitialService.load();
 
@@ -91,7 +99,6 @@ class _MyAppState extends State<MyApp> {
   bool _showOnboarding = true;
 
   final NotificationService _notificationService = NotificationService();
-
   StreamSubscription<Uri>? _linkSub;
 
   @override
@@ -99,6 +106,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _checkFirstLaunch();
     _notificationService.init(context);
+
   }
 
   Future<void> _checkFirstLaunch() async {
@@ -116,6 +124,8 @@ class _MyAppState extends State<MyApp> {
       setState(() => _isLoading = false);
     }
   }
+
+
 
   @override
   void dispose() {
@@ -139,6 +149,7 @@ class _MyAppState extends State<MyApp> {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       navigatorObservers: [AnalyticsObserver.observer],
       home: _showOnboarding ? const OnbordingScreen() : const Splashscreen(),
     );

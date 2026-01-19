@@ -2,7 +2,7 @@ name: cricket_highlight
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.8+16
+version: 1.0.10+18
 
 environment:
   sdk: ^3.9.2
@@ -11,14 +11,14 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # UI & Fonts
+
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.2.2
   google_fonts: ^6.3.2
   animations: ^2.1.0
   flutter_animate: ^4.5.2
 
-  # Networking & Storage
+
   dio: ^5.9.0
   provider: ^6.1.5+1
   cached_network_image: ^3.4.1

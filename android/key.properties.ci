@@ -1,0 +1,4 @@
+storeFile=app/my-release-key-new.jks
+storePassword=${KEYSTORE_PASSWORD}
+keyAlias=${KEY_ALIAS}
+keyPassword=${KEY_PASSWORD}

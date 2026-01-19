@@ -5,6 +5,7 @@ import 'package:cricket_highlight/utils/fadenavigation.dart';
 import 'package:cricket_highlight/views/home/news_screen.dart';
 import 'package:cricket_highlight/views/home/savedscreen.dart';
 import 'package:cricket_highlight/views/home/videoplayerscreen.dart';
+import 'package:cricket_highlight/utils/rate_us_dialog.dart';
 import 'package:cricket_highlight/widgets/app_search_bar.dart';
 import 'package:cricket_highlight/widgets/apptext.dart';
 import 'package:cricket_highlight/widgets/video_card.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../model/moviemodel.dart';
 import '../../widgets/shimmerbox.dart';
 
@@ -41,31 +43,65 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     _tabController = TabController(length: 2, vsync: this);
 
     _tabController.addListener(() {
-      setState(() {}); // 🔹 tab change pe rebuild for bottomNavigationBar
+      setState(() {}); // Tab change ke liye rebuild
     });
 
     AnalyticsService.logScreen("HomeScreen");
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider = context.read<CategoryProvider>();
+
+      // 🔹 Load movies
+      if (provider.isMoviesStale) {
+        await provider.loadMovies(forceRefresh: true);
+      }
+      if (mounted) {
+        setState(() {
+          randomMovies = provider.getRandomMovies(count: 18);
+        });
+      }
+
+      // 🔹 Interstitial Ad
       Future.delayed(const Duration(milliseconds: 800), () {
         InterstitialService.showAdIfReady(onComplete: () {
           AnalyticsService.logEvent('interstitial_ad_shown');
         });
       });
 
-      final provider = context.read<CategoryProvider>();
 
-      if (provider.isMoviesStale) {
-        await provider.loadMovies(forceRefresh: true);
-      }
-
-      if (mounted) {
-        setState(() {
-          randomMovies = provider.getRandomMovies(count: 18);
-        });
-      }
+      await _showRateUsDialogIfNeeded();
     });
   }
+
+  Future<void> _showRateUsDialogIfNeeded() async {
+    if (!mounted) return; // ensure context is valid
+
+    final prefs = await SharedPreferences.getInstance();
+
+    // Get current open count & reviewed state
+    int openCount = prefs.getInt('appOpenCount') ?? 0;
+    bool hasReviewed = prefs.getBool('hasReviewed') ?? false;
+
+    // Increment open count
+    openCount++;
+    await prefs.setInt('appOpenCount', openCount);
+
+    // Clean debug print
+    debugPrint(
+      'HomeScreen openCount: $openCount, hasReviewed: $hasReviewed',
+      wrapWidth: 1024,
+    );
+
+    // Show RateUsDialog only on 3rd open
+    if (!hasReviewed && openCount == 3) {
+      if (!mounted) return;
+      RateUsDialog.show(context);
+    }
+  }
+
+
+
+
 
   @override
   void dispose() {
@@ -99,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               snap: true,
               pinned: false,
               bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(80.0),
+                preferredSize: const Size.fromHeight(90.0),
                 child: Column(
                   children: [
                     _buildSearchBar(),
@@ -188,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Widget _buildSearchBar() {
     final provider = context.read<CategoryProvider>();
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 10, 0),
+      padding: const EdgeInsets.fromLTRB(20, 20, 10, 0),
       child: Row(
         children: [
           Expanded(
