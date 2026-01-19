@@ -10,19 +10,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Repo ka code uthao
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2️⃣ Latest stable Flutter install karo
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.0'
+          channel: 'stable'
 
+      # 3️⃣ Flutter version check (debug ke liye)
+      - name: Flutter version
+        run: flutter --version
+
+      # 4️⃣ Dependencies install
       - name: Install dependencies
         run: flutter pub get
 
+      # 5️⃣ Code analyze (warnings / errors)
       - name: Analyze code
         run: flutter analyze
 
+      # 6️⃣ Android AppBundle build
       - name: Build AppBundle
         run: flutter build appbundle
