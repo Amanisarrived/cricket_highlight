@@ -10,60 +10,56 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # 1️⃣ Checkout repo
-      - name: Checkout code
+      # 1️⃣ Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup Flutter (pin version to match your local)
+      # 2️⃣ Setup Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.38.7'
+          flutter-version: '3.38.7'  # match your local Flutter version
           channel: 'stable'
 
-      # 3️⃣ Flutter version (optional, debug)
-      - name: Flutter version
-        run: flutter --version
-
-      # 4️⃣ Clean any previous build (safe step for CI)
+      # 3️⃣ Clean previous build (safe for CI)
       - name: Clean Flutter build
         run: flutter clean
 
-      # 5️⃣ Install dependencies
+      # 4️⃣ Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # 6️⃣ Run build_runner to generate files
+      # 5️⃣ Run build_runner to generate files
       - name: Run build_runner
         run: flutter pub run build_runner build --delete-conflicting-outputs
 
-      # 7️⃣ Create dummy .env file if needed
+      # 6️⃣ Create dummy .env file if needed
       - name: Create dummy env file
         run: New-Item -Path .env -ItemType File -Force
 
-      # 8️⃣ Copy CI-specific key.properties
+      # 7️⃣ Copy CI key.properties (with placeholders)
       - name: Setup key.properties for CI
         run: copy android/key.properties.ci android/key.properties
 
-      # 9️⃣ Setup Keystore safely
+      # 8️⃣ Setup Keystore from base64 secret
       - name: Setup Keystore
         run: |
-          # Create android/app folder only if missing
+          # Create android/app folder if missing
           if (-not (Test-Path "android/app")) {
             New-Item -ItemType Directory -Path "android/app"
           }
 
-          # Write keystore from base64 secret
+          # Decode base64 secret into JKS keystore
           [System.IO.File]::WriteAllBytes(
             "android/app/my-release-key-new.jks",
             [System.Convert]::FromBase64String("${{ secrets.KEYSTORE_BASE64 }}")
           )
 
-      # 🔟 Debug keystore exists
+      # 9️⃣ Optional: Debug keystore exists
       - name: Debug keystore
         run: dir android\app
 
-      # 1️⃣1️⃣ Build AppBundle (verbose for CI logs)
+      # 🔟 Build AppBundle (verbose)
       - name: Build AppBundle (verbose)
         run: flutter build appbundle --release -v
         env:
