@@ -75,7 +75,7 @@ class OnbordingScreen extends StatelessWidget {
                     child: AppButton(
                       text: "Next",
                       onPressed: () {
-                        Navigator.of(context).push(
+                        Navigator.of(context).pushReplacement(
                           PageRouteBuilder(
                             transitionDuration: const Duration(milliseconds: 700),
                             pageBuilder: (_, animation, secondaryAnimation) =>

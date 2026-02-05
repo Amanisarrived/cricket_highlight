@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../screenstate/screenstate.dart';
 
-
 class Splashscreen extends StatefulWidget {
   const Splashscreen({super.key});
 
@@ -11,36 +10,42 @@ class Splashscreen extends StatefulWidget {
 }
 
 class _SplashscreenState extends State<Splashscreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  final Random _random = Random();
-  final int _bubbleCount = 10; // fewer bubbles for subtle look
-  late List<_Bubble> _bubbles;
+    with TickerProviderStateMixin {
+  late AnimationController _bgController;
+  late AnimationController _logoController;
+  late Animation<double> _logoScale;
+  late Animation<double> _logoOpacity;
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize bubbles
-    _bubbles = List.generate(
-      _bubbleCount,
-          (_) => _Bubble(
-        x: _random.nextDouble(),
-        y: _random.nextDouble(),
-        radius: 8 + _random.nextDouble() * 10, // smaller radius
-        dx: (_random.nextDouble() - 0.5) / 300,
-        dy: (_random.nextDouble() - 0.5) / 300,
-      ),
-    );
-
-    // Animation controller for bubbles
-    _controller = AnimationController(
+    _bgController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 60),
+      duration: const Duration(seconds: 10),
     )..repeat();
 
-    // Navigate to next screen after 5 seconds
-    Future.delayed(const Duration(seconds: 2), () {
+
+    _logoController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    _logoScale =
+        Tween<double>(begin: 0.85, end: 1).animate(CurvedAnimation(
+          parent: _logoController,
+          curve: Curves.easeOutCubic,
+        ));
+
+    _logoOpacity =
+        Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
+          parent: _logoController,
+          curve: Curves.easeOut,
+        ));
+
+    _logoController.forward();
+
+    Future.delayed(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const MainScreenState()),
       );
@@ -49,82 +54,47 @@ class _SplashscreenState extends State<Splashscreen>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _bgController.dispose();
+    _logoController.dispose();
     super.dispose();
-  }
-
-  // Update bubble positions
-  void _updateBubbles() {
-    for (var bubble in _bubbles) {
-      bubble.x += bubble.dx;
-      bubble.y += bubble.dy;
-
-      if (bubble.x < 0) bubble.x = 1;
-      if (bubble.x > 1) bubble.x = 0;
-      if (bubble.y < 0) bubble.y = 1;
-      if (bubble.y > 1) bubble.y = 0;
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
       body: AnimatedBuilder(
-        animation: _controller,
+        animation: _bgController,
         builder: (context, child) {
-          _updateBubbles();
-
           return Stack(
             fit: StackFit.expand,
             children: [
-              // Glowing bubbles background
+              // premium animated gradient
               CustomPaint(
-                painter: _BubblePainter(_bubbles),
+                painter: _WaveGradientPainter(_bgController.value),
               ),
 
-              // Center logo + loader bubbles
+              // dark overlay
+              Container(
+                color: Colors.black.withOpacity(0.35),
+              ),
+
+              // logo + loader
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Center(
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      width: 150,
+                  FadeTransition(
+                    opacity: _logoOpacity,
+                    child: ScaleTransition(
+                      scale: _logoScale,
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 160,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 80),
+                  const SizedBox(height: 60),
 
-                  // Loader bubbles orbiting around center
-                  SizedBox(
-                    width: 70,
-                    height: 70,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: List.generate(3, (index) {
-                        final angle =
-                            (index * 2 * pi / 3) + (_controller.value * 2 * pi * 8);
-                        return Transform.translate(
-                          offset: Offset(20 * cos(angle), 20 * sin(angle)),
-                          child: Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: Colors.redAccent.withOpacity(0.9),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.redAccent.withOpacity(0.6),
-                                  blurRadius: 8,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
+                  const _DotLoader(),
                 ],
               ),
             ],
@@ -135,51 +105,100 @@ class _SplashscreenState extends State<Splashscreen>
   }
 }
 
-// Bubble model
-class _Bubble {
-  double x;
-  double y;
-  double radius;
-  double dx;
-  double dy;
+///// ================== LOADER ==================
 
-  _Bubble({
-    required this.x,
-    required this.y,
-    required this.radius,
-    required this.dx,
-    required this.dy,
-  });
+class _DotLoader extends StatefulWidget {
+  const _DotLoader();
+
+  @override
+  State<_DotLoader> createState() => _DotLoaderState();
 }
 
-// Custom painter for glowing bubbles
-class _BubblePainter extends CustomPainter {
-  final List<_Bubble> bubbles;
+class _DotLoaderState extends State<_DotLoader>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
 
-  _BubblePainter(this.bubbles);
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (_, __) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(3, (i) {
+            final scale =
+                1 + sin((_controller.value * 2 * pi) + (i * pi / 2)) * 0.4;
+            return Transform.scale(
+              scale: scale,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 6),
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Colors.redAccent,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.redAccent.withOpacity(0.6),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+}
+
+///// ================== BACKGROUND ==================
+
+class _WaveGradientPainter extends CustomPainter {
+  final double progress;
+
+  _WaveGradientPainter(this.progress);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
+    final rect = Offset.zero & size;
 
-    for (var bubble in bubbles) {
-      final center = Offset(bubble.x * size.width, bubble.y * size.height);
+    final gradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: const [
+        Color(0xFF0F0F0F),
+        Color(0xFF1A0000),
+        Color(0xFF300000),
+        Color(0xFF0F0F0F),
+      ],
+      stops: [
+        0,
+        0.3 + progress * 0.3,
+        0.6 + progress * 0.3,
+        1,
+      ],
+    );
 
-      // Radial gradient for bubble
-      paint.shader = RadialGradient(
-        colors: [
-          Colors.redAccent.withOpacity(0.2),
-          Colors.redAccent.withOpacity(0.0),
-        ],
-      ).createShader(Rect.fromCircle(center: center, radius: bubble.radius));
+    final paint = Paint()..shader = gradient.createShader(rect);
 
-      canvas.drawCircle(center, bubble.radius, paint);
-
-      // subtle glow
-      paint.shader = null;
-      paint.color = Colors.redAccent.withOpacity(0.05);
-      canvas.drawCircle(center, bubble.radius * 1.5, paint);
-    }
+    canvas.drawRect(rect, paint);
   }
 
   @override

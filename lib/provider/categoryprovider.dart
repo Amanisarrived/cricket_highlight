@@ -14,6 +14,9 @@ class CategoryProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   DateTime? _lastFetchedTime;
+  MovieModel? _randomMovie;
+  MovieModel? get randomMovie => _randomMovie;
+
 
   static const cacheDuration = Duration(minutes: 30);
 

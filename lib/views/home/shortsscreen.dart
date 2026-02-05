@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-
 import '../../provider/reel_provider.dart';
 import '../../provider/categoryprovider.dart';
-import '../../utils/review_helper.dart'; // ⭐ NEW IMPORT
+import '../../utils/utils/review_helper.dart';
+
+
 
 class ReelsScreen extends StatefulWidget {
   const ReelsScreen({super.key});
@@ -16,8 +17,6 @@ class ReelsScreen extends StatefulWidget {
 class _ReelsScreenState extends State<ReelsScreen> {
   final PageController _pageController = PageController();
   final Map<int, YoutubePlayerController> _controllers = {};
-
-  /// ⭐ Ye set ensure karega ki ek short sirf ek baar count ho
   final Set<int> _endedOnce = {};
 
   @override
@@ -32,8 +31,11 @@ class _ReelsScreenState extends State<ReelsScreen> {
         await catProvider.loadMovies();
       }
 
-      await reelsProvider.initReels(catProvider);
+      if (reelsProvider.visibleReels.isEmpty) {
+        await reelsProvider.initReels(catProvider);
+      }
 
+      // 👇 preload first two
       _initController(0);
       _initController(1);
 
@@ -42,7 +44,8 @@ class _ReelsScreenState extends State<ReelsScreen> {
   }
 
   void _initController(int index) {
-    final reels = context.read<ReelsProvider>().visibleReels;
+    final reels =
+    context.read<ReelsProvider>().getOrderedReels(); // 🔥 SAME ORDER
 
     if (index < 0 || index >= reels.length) return;
     if (_controllers.containsKey(index)) return;
@@ -99,7 +102,8 @@ class _ReelsScreenState extends State<ReelsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final reels = context.watch<ReelsProvider>().visibleReels;
+    final reels =
+    context.watch<ReelsProvider>().getOrderedReels(); // 🔥 SAME ORDER
     final screenHeight = MediaQuery.of(context).size.height;
 
     if (reels.isEmpty) {
@@ -143,7 +147,6 @@ class _ReelsScreenState extends State<ReelsScreen> {
                   ReviewHelper.onShortCompleted();
                 });
               },
-
             );
           },
         ),

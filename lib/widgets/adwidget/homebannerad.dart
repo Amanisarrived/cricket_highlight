@@ -33,7 +33,7 @@ class _HomeBannerAdState extends State<HomeBannerAd> {
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (_) {
-          setState(() => _isLoaded = true);
+          if (mounted) setState(() => _isLoaded = true);
         },
         onAdFailedToLoad: (ad, err) {
           ad.dispose();
@@ -45,7 +45,6 @@ class _HomeBannerAdState extends State<HomeBannerAd> {
     _bannerAd = banner;
   }
 
-
   @override
   void dispose() {
     _bannerAd?.dispose();
@@ -54,14 +53,59 @@ class _HomeBannerAdState extends State<HomeBannerAd> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_isLoaded) return const SizedBox.shrink();
+    if (!_isLoaded || _bannerAd == null) return const SizedBox.shrink();
 
-    return Container(
-      alignment: Alignment.center,
-      margin: const EdgeInsets.symmetric(vertical: 12),
-      width: _bannerAd!.size.width.toDouble(),
-      height: _bannerAd!.size.height.toDouble(),
-      child: AdWidget(ad: _bannerAd!),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1E1E),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.4),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 🔥 Sponsored tag
+            Row(
+              children: const [
+                Icon(Icons.campaign, size: 14, color: Colors.grey),
+                SizedBox(width: 6),
+                Text(
+                  "Sponsored",
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
+            // 🔥 Ad area
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                color: Colors.black,
+                alignment: Alignment.center,
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

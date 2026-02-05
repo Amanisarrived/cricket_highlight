@@ -10,67 +10,77 @@ class ReelsRepository {
   final ApiService apiService;
   final Box<HiveMovieModel> reelsBox;
 
-  List<MovieModel> _allReels = [];
-  List<MovieModel> visibleReels = [];
+  final List<MovieModel> _cache = [];
+  final List<MovieModel> visibleReels = [];
 
-  int _currentPointer = 0;
-  final int pageSize = 1;
-  final int visibleLimit = 100;
+  bool _isFetched = false;
 
   ReelsRepository({
     required this.apiService,
     required this.reelsBox,
   });
 
-  /// INIT
+  /// INIT (same as before)
   Future<void> initReels({CategoryProvider? catProvider}) async {
-    debugPrint("ReelsRepository: initReels");
-
-    if (catProvider != null) {
-      _allReels = await catProvider.getReels();
-    } else {
-      _allReels = apiService.getMoviesByCategoryId(45);
+    if (_cache.isNotEmpty) {
+      visibleReels
+        ..clear()
+        ..addAll(_cache);
+      return;
     }
 
-    if (_allReels.isEmpty) return;
+    final data = catProvider != null
+        ? await catProvider.getReels()
+        : apiService.getMoviesByCategoryId(45);
 
-    _allReels.shuffle(Random());
-    visibleReels.clear();
-    _currentPointer = 0;
-    _addNext();
-    _addNext();
-    _addNext();
+    _cache
+      ..clear()
+      ..addAll(data);
+
+    visibleReels
+      ..clear()
+      ..addAll(_cache);
+
+    shuffleOnce();
   }
 
-  /// Pagination
-  void loadMoreIfNeeded(int index) {
-    if (index >= visibleReels.length - 1) {
-      _addNext();
-    }
+  // 🔥 ONLY SHUFFLE FUNCTION (tu baad me remove kar sakta hai)
+  void shuffleVisibleOnce() {
+    if (visibleReels.isEmpty) return;
+
+    final temp = List<MovieModel>.from(visibleReels);
+    temp.shuffle(Random());
+
+    visibleReels
+      ..clear()
+      ..addAll(temp);
+
+    debugPrint("🔥 Reels shuffled (visible only)");
   }
 
-  /// Core logic
-  void _addNext() {
-    if (_allReels.isEmpty) return;
-
-    final reel = _allReels[_currentPointer];
-    visibleReels.add(reel);
-
-    _currentPointer++;
-
-    if (_currentPointer >= _allReels.length) {
-      _currentPointer = 0;
-      _allReels.shuffle(Random());
-    }
-
-    if (visibleReels.length > visibleLimit) {
-      visibleReels.removeAt(0);
-    }
-  }
+  void loadMoreIfNeeded(int index) {}
 
   void resetForRefresh() {
-    _currentPointer = 0;
+    _isFetched = false;
+    _cache.clear();
     visibleReels.clear();
-    _allReels.clear();
   }
+
+  List<MovieModel> getTrendingReels() {
+    return _cache.where((m) => m.isTrending == true).toList();
+  }
+
+  List<MovieModel> getPreviewReels(int count) {
+    if (visibleReels.isEmpty) return [];
+    return visibleReels.take(count).toList();
+  }
+  void shuffleOnce() {
+    visibleReels
+      ..clear()
+      ..addAll(_cache);
+
+    visibleReels.shuffle(Random());
+  }
+
 }
+

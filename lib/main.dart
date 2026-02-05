@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:cricket_highlight/model/featured_match_model.dart';
 import 'package:cricket_highlight/model/hive_movie_model.dart';
 import 'package:cricket_highlight/model/hive_news_model.dart';
 import 'package:cricket_highlight/provider/categoryprovider.dart';
 import 'package:cricket_highlight/provider/news_provider.dart';
 import 'package:cricket_highlight/provider/reel_provider.dart';
 import 'package:cricket_highlight/provider/saved_video_provider.dart';
+import 'package:cricket_highlight/provider/search_provider.dart';
 import 'package:cricket_highlight/repo/NewsRepository.dart';
 import 'package:cricket_highlight/repo/reels_repo.dart';
 import 'package:cricket_highlight/service/analytics_observer.dart';
@@ -14,6 +16,7 @@ import 'package:cricket_highlight/service/notification_service.dart';
 import 'package:cricket_highlight/views/home/splashscreen.dart';
 import 'package:cricket_highlight/views/onbording/onbording_screen.dart';
 import 'package:cricket_highlight/widgets/adwidget/interstitialadwidget.dart';
+import 'package:cricket_highlight/widgets/adwidget/rewarded_ads.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -23,10 +26,12 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:youtube_shorts/youtube_shorts.dart';
 import 'firebase_options.dart';
+import 'model/match_status.dart';
+import 'package:media_kit/media_kit.dart';
 
-// 🔹 Global navigatorKey for safe dialogs
+
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
@@ -46,19 +51,22 @@ Future<void> main() async {
     InAppWebViewPlatform.instance = AndroidInAppWebViewPlatform();
   }
 
-  // 🔹 Hive Init
+
   await Hive.initFlutter();
   Hive.registerAdapter(HiveMovieModelAdapter());
   Hive.registerAdapter(NewsmodelAdapter());
+  Hive.registerAdapter(FeaturedMatchModelAdapter());
+  Hive.registerAdapter(MatchStatusAdapter());
 
   await Hive.openBox<HiveMovieModel>('saved_videos');
   await Hive.openBox<Newsmodel>('news');
   await Hive.openBox<HiveMovieModel>('reelsBox');
 
-  // 🔹 Review box (key-value)
+
   await Hive.openBox('review_box');
 
   InterstitialService.load();
+  RewardedAdService.load();
 
   runApp(
     MultiProvider(
@@ -81,6 +89,7 @@ Future<void> main() async {
             ),
           ),
         ),
+        ChangeNotifierProvider(create: (_)=> SearchProvider())
       ],
       child: const MyApp(),
     ),

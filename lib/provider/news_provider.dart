@@ -11,17 +11,18 @@ class NewsProvider extends ChangeNotifier {
   String? _error;
   List<Newsmodel> visibleNews = [];
 
-  // 🔥 PUBLIC GETTER
   String? get error => _error;
 
   Future<void> init({bool refresh = false}) async {
+    if (refresh) visibleNews.clear();
+
     isLoading = true;
     _error = null;
-    notifyListeners();
+    if (!refresh) notifyListeners();
 
     try {
       await repository.initNews(refresh: refresh);
-      visibleNews = repository.visibleNews;
+      visibleNews = List.from(repository.visibleNews); // newest first already
     } catch (e) {
       _error = e.toString();
     }
@@ -32,7 +33,7 @@ class NewsProvider extends ChangeNotifier {
 
   void loadMoreIfNeeded(int index) {
     repository.loadMoreIfNeeded(index);
-    visibleNews = repository.visibleNews;
+    visibleNews = List.from(repository.visibleNews);
     notifyListeners();
   }
 

@@ -8,7 +8,6 @@ class NotificationService {
   FlutterLocalNotificationsPlugin();
 
   Future<void> init(BuildContext context) async {
-    // 1️⃣ Permission
     await _firebaseMessaging.requestPermission(
       alert: true,
       badge: true,

@@ -19,32 +19,27 @@ class NewsRepository {
     required this.newsBox,
   });
 
-  /// 🔥 INIT / REFRESH
   Future<void> initNews({bool refresh = false}) async {
     if (refresh) {
       _pointer = 0;
       visibleNews.clear();
     }
 
-    // 🔥 API hit
     final apiData = await apiService.fetchNews();
     final now = DateTime.now();
 
-    // 🔥 API → Model → FILTER (6 days)
+    // 🔥 Filter by maxDays + sort newest first
     _source = apiData
         .map((e) => Newsmodel.fromApi(e))
         .where(
           (news) => now.difference(news.createdAt).inDays <= maxDays,
     )
-        .toList();
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt)); // newest first
 
     if (_source.isEmpty) return;
 
-    // 🔥 SHUFFLE every time
-    _source.shuffle(Random());
-
-    // 🔥 Save filtered + shuffled to Hive
-    await newsBox.clear();
+    // await newsBox.clear();
     await newsBox.putAll({for (var n in _source) n.id: n});
 
     _addNext();
@@ -66,11 +61,7 @@ class NewsRepository {
       _pointer++;
       added++;
     }
-
-    // 🔥 Loop + reshuffle (infinite feel)
-    if (_pointer >= _source.length) {
-      _pointer = 0;
-      _source.shuffle(Random());
-    }
   }
+
+  bool get hasMore => _pointer < _source.length;
 }

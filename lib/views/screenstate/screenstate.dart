@@ -1,7 +1,7 @@
+import 'package:cricket_highlight/views/home/redesign_homesreen.dart';
 import 'package:cricket_highlight/views/home/shortsscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:cricket_highlight/views/home/homescreen.dart';
 import 'package:cricket_highlight/views/categoryscreen/categoryscreen.dart';
 import 'package:cricket_highlight/views/settingscreens/settingscreen.dart';
 
@@ -16,7 +16,7 @@ class _MainScreenStateState extends State<MainScreenState> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    HomeScreen(),
+    RedesignHomescreen(),
     ReelsScreen(),
     Categoryscreen(),
     Settingscreen(),
